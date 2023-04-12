@@ -310,7 +310,7 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
                     <p>
                         By subscribing to a paid plan, you accept <Nowrap>
                             <a href="https://httptoolkit.com/terms-of-service">
-                                the HTTP Toolkit Terms of Service
+                                the Pipe Terms of Service
                             </a>
                         </Nowrap>.
                     </p>

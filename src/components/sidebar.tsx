@@ -63,7 +63,7 @@ const sidebarItemStyles = css`
 
 const SidebarLogo = styled.img.attrs(() => ({
     src: logo,
-    alt: 'HTTP Toolkit logo'
+    alt: 'Pipe logo'
 }))`
     ${sidebarItemStyles}
     padding: 8px;

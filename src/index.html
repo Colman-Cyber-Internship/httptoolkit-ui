@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <base href="/" />
-    <link rel='shortcut icon' type='image/x-icon' href='https://httptoolkit.com/favicon.ico' />
+    <link rel='shortcut icon' type='image/x-icon' href=./images/favicon.ico />
     <link rel='stylesheet' href='/fonts.css' />
     <meta name="viewport" content="width=device-width">
-    <title>HTTP Toolkit</title>
+    <title>Pipe</title>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             overflow: hidden;
 
@@ -28,9 +30,12 @@
             justify-content: center;
         }
 
-        #app:not(:empty) ~ #app-loading-placeholder { display: none; }
+        #app:not(:empty)~#app-loading-placeholder {
+            display: none;
+        }
 
-        #initial-logo, #progress-logo {
+        #initial-logo,
+        #progress-logo {
             position: absolute;
         }
 
@@ -59,14 +64,15 @@
             height: 100%;
         }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <div id="app"></div>
     <div id="app-loading-placeholder">
-      <img id="initial-logo" src="<%=require('./images/logo-large.png')%>">
-      <img id="progress-logo" src="<%=require('./images/logo-large.png')%>">
-      <div id="app-loading-error"></div>
-      <div id="app-loading-error-details"></div>
+        <img id="initial-logo" src="<%=require('./images/logo-large.png')%>">
+        <img id="progress-logo" src="<%=require('./images/logo-large.png')%>">
+        <div id="app-loading-error"></div>
+        <div id="app-loading-error-details"></div>
     </div>
 
     <script>
@@ -123,7 +129,7 @@
                 if (error.isTimeout) {
                     errorElement.innerText = 'This is taking longer than normal...';
                     errorDetailsElement.innerHTML = 'If this persists or happens often ' +
-                        'please <a href="https://github.com/httptoolkit/httptoolkit/issues/new">file an issue</a> ' + 'and help make HTTP Toolkit faster.';
+                        'please <a href="https://github.com/httptoolkit/httptoolkit/issues/new">file an issue</a> ' + 'and help make Pipe faster.';
                 } else {
                     errorElement.innerText = 'Startup failed: "' + error.message + '"';
                     errorDetailsElement.innerHTML = 'Please ' +
@@ -138,5 +144,6 @@
             window.globalThis = window;
         }
     </script>
-  </body>
+</body>
+
 </html>

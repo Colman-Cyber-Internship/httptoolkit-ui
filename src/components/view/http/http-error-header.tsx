@@ -183,7 +183,7 @@ export const HttpErrorHeader = (p: {
                             ? 'headers were too large to be processed'
                         : // unparseable
                             'could not be parsed'
-                    }, so HTTP Toolkit did not handle this request.
+                    }, so Pipe did not handle this request.
                 </>
             : wasNotForwarded(p.type)
                 ? <>
@@ -202,7 +202,7 @@ export const HttpErrorHeader = (p: {
                             ? 'hostname could be not found'
                         : // connection-refused
                             'refused the connection'
-                    }, so HTTP Toolkit did not forward the request.
+                    }, so Pipe did not forward the request.
                 </>
             : // Unknown/upstream issue:
                 <>
@@ -213,7 +213,7 @@ export const HttpErrorHeader = (p: {
                             ? 'the connection to the server timed out'
                         : // unknown
                             'of an unknown error'
-                    }, so HTTP Toolkit could not return a response.
+                    }, so Pipe could not return a response.
                 </>
             }
         </HeaderText>
@@ -316,7 +316,7 @@ export const HttpErrorHeader = (p: {
             </HeaderText>
         : isClientBug(p.type)
             ? <HeaderText>
-                This means the client sent HTTP Toolkit some fundamentally invalid data that does
+                This means the client sent Pipe some fundamentally invalid data that does
                 not follow the HTTP spec. That suggests either a major bug in the client, or that
                 they're not sending HTTP at all.
             </HeaderText>
@@ -327,12 +327,12 @@ export const HttpErrorHeader = (p: {
                         This means the request included more than 100KB of headers. The HTTP specification
                         doesn't set a max length, but most servers will refuse to process anything longer
                         than 8KB. This is likely an issue with your client, but if necessary you can increase
-                        the HTTP Toolkit limit by setting <code>max-http-header-size</code> using the <code>HTTPTOOLKIT_NODE_OPTIONS</code> environment variable.
+                        the Pipe limit by setting <code>max-http-header-size</code> using the <code>HTTPTOOLKIT_NODE_OPTIONS</code> environment variable.
                     </>
                 : desktopVersion.value // Old desktop:
                     ? <>
-                        In more recent HTTP Toolkit versions the built-in limit has been increased, so please
-                        update HTTP Toolkit to handle requests like these.
+                        In more recent Pipe versions the built-in limit has been increased, so please
+                        update Pipe to handle requests like these.
                     </>
                 : // Non-desktop use:
                     <>
@@ -343,7 +343,7 @@ export const HttpErrorHeader = (p: {
             </HeaderText>
         : p.type === 'invalid-method'
             ? <HeaderText>
-                Because this method is unrecognized, HTTP Toolkit doesn't know how it should
+                Because this method is unrecognized, Pipe doesn't know how it should
                 be handled, and cannot safely forward it on elsewhere. If you think this
                 method should be supported, please <a
                     href='https://github.com/httptoolkit/httptoolkit/issues/new'
@@ -363,7 +363,7 @@ export const HttpErrorHeader = (p: {
             </HeaderText>
         : // 'unknown':
             <HeaderText>
-                It's not clear what's gone wrong here, but for some reason HTTP Toolkit
+                It's not clear what's gone wrong here, but for some reason Pipe
                 couldn't successfully and/or securely complete this request.
                 This might be an intermittent issue, and may be resolved by retrying
                 the request.

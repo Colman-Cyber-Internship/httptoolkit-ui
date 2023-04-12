@@ -235,7 +235,7 @@ export class ProxySettingsCard extends React.Component<
                 }
             </ProxyPortStateExplanation>
             <SettingsExplanation>
-                When opening HTTP Toolkit, it will start the proxy on the first port in
+                When opening Pipe, it will start the proxy on the first port in
                 this range that is available. If all ports in the range are in use, the
                 first free port above 8000 will be used instead.
             </SettingsExplanation>
@@ -257,9 +257,9 @@ export class ProxySettingsCard extends React.Component<
                     />
 
                     <SettingsExplanation>
-                        Incoming TLS connections to these hostnames will bypass HTTP Toolkit, and will
+                        Incoming TLS connections to these hostnames will bypass Pipe, and will
                         be forwarded upstream untouched instead of being intercepted. Clients will not see
-                        HTTP Toolkit's certificate, which may solve some connection issues, but traffic
+                        Pipe's certificate, which may solve some connection issues, but traffic
                         within these TLS connections will not be accessible.
                     </SettingsExplanation>
                 </>
