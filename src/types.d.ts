@@ -151,6 +151,12 @@ export type CollectedEvent =
     | RTCDataChannel
     | RTCMediaTrack;
 
+export type SecurityCheck ={
+    id: number,
+    Malicious: boolean,
+    level: string,
+    detail: string
+}
 export type ExchangeMessage = HtkRequest | HtkResponse;
 export type RTCStream = RTCDataChannel | RTCMediaTrack;
 
