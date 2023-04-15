@@ -299,6 +299,9 @@ export class EventsStore {
                     return this.addRTCMediaTrackStats(queuedEvent.event);
                 case 'media-track-closed':
                     return this.markRTCMediaTrackClosed(queuedEvent.event);
+                case 'security-check':
+                    console.log('I got a security check!\n' + JSON.stringify(queuedEvent.event));
+                    break;
             }
         } catch (e) {
             // It's possible we might fail to parse an input event. This shouldn't happen, but if it
