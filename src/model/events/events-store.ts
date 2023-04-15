@@ -27,7 +27,8 @@ import {
     InputRTCMediaTrackOpened,
     InputRTCMediaStats,
     InputRTCMediaTrackClosed,
-    InputRTCExternalPeerAttached
+    InputRTCExternalPeerAttached,
+    InputSecurityCheckEvent
 } from '../../types';
 
 import { lazyObservablePromise } from '../../util/observable';
@@ -71,6 +72,9 @@ type EventTypesMap = {
 } & {
     // MockRTC:
     [K in InputRTCEvent]: InputRTCEventData[K];
+} & {
+    // SecurityCheck:
+    'security-check': InputSecurityCheckEvent;
 }
 
 const mockttpEventTypes = [
@@ -102,12 +106,18 @@ const mockRTCEventTypes = [
     'media-track-closed'
 ] as const;
 
+const mockSecurityEventTypes = [
+    'security-check'
+] as const;
+
 type MockttpEventType = typeof mockttpEventTypes[number];
-type MockRTCEventType = typeof mockRTCEventTypes[number]
+type MockRTCEventType = typeof mockRTCEventTypes[number];
+type MockSecurityEventType = typeof mockSecurityEventTypes[number];
 
 type EventType =
     | MockttpEventType
-    | MockRTCEventType;
+    | MockRTCEventType
+    | MockSecurityEventType;
 
 type QueuedEvent = ({
     [T in EventType]: { type: T, event: EventTypesMap[T] }
@@ -162,6 +172,14 @@ export class EventsStore {
                 this.queueEventFlush();
             }));
         });
+
+        mockSecurityEventTypes.forEach(<T extends MockSecurityEventType>(eventName: T) => {
+            this.proxyStore.onMockSecurityEvent(eventName, ((eventData:EventTypesMap[T]) => {
+                if (this.isPaused) return;
+                this.eventQueue.push({ type: eventName, event: eventData } as any);
+                this.queueEventFlush();
+            }))
+        })
 
         console.log('Events store initialized');
     });

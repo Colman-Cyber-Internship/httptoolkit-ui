@@ -17,10 +17,12 @@ import {
     MockttpHttpsOptions
 } from 'mockttp';
 import * as MockRTC from 'mockrtc';
+import * as MockSecurityCheck from 'mocksecurity-check';
 
 import {
     InputHTTPEvent,
     InputRTCEvent,
+    InputSecurityCheckEvent,
     PortRange,
 } from '../types';
 import {
@@ -40,6 +42,7 @@ import { serverVersion } from '../services/service-versions';
 
 type HtkAdminClient =
     // WebRTC is only supported for new servers:
+    | PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin, webrtc: MockRTC.MockRTCAdminPlugin, securityCheck: MockSecurityCheck.MockSecurityCheckAdminPlugin }>
     | PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin, webrtc: MockRTC.MockRTCAdminPlugin }>
     | PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin }>;
 
@@ -110,6 +113,7 @@ export class ProxyStore {
 
     private mockttpRequestBuilder!: MockttpPluggableAdmin.MockttpAdminRequestBuilder;
     private mockRTCRequestBuilder = new MockRTC.MockRTCAdminRequestBuilder();
+    private mockSecurityCheckRequestBuilder = new MockSecurityCheck.MockSecurityCheckAdminRequestBuilder()
 
     @observable
     // !-asserted, because it's definitely set *after initialized*
@@ -188,7 +192,8 @@ export class ProxyStore {
     private startIntercepting = flow(function* (this: ProxyStore) {
         this.adminClient = new PluggableAdmin.AdminClient<{
             http: any,
-            webrtc: any
+            webrtc: any,
+            securityCheck: any
         }>({
             adminServerUrl: 'http://127.0.0.1:45456'
         });
@@ -211,7 +216,8 @@ export class ProxyStore {
                 },
                 port: this.portConfig
             },
-            webrtc: {}
+            webrtc: {},
+            securityCheck: {},
         });
 
         this.mockttpRequestBuilder = new MockttpPluggableAdmin.MockttpAdminRequestBuilder(
@@ -342,6 +348,21 @@ export class ProxyStore {
             // sources in the same kind of situation). This is what happens when the *client* doesn't
             // recognize the event. Subscribe() below handles the unknown-to-server case.
             console.warn(`Ignoring subscription for event unrecognized by MockRTC client: ${event}`);
+            return Promise.resolve();
+        }
+
+        return this.adminClient.subscribe(subRequest, callback);
+    }
+
+    onMockSecurityEvent = (event: InputSecurityCheckEvent, callback: (data: any) => void) => {
+        const subRequest = this.mockSecurityCheckRequestBuilder.buildSubscriptionRequest(event);
+
+        if (!subRequest) {
+            // We just return an immediately promise if we don't recognize the event, which will quietly
+            // succeed but never call the corresponding callback (the same as the server and most event
+            // sources in the same kind of situation). This is what happens when the *client* doesn't
+            // recognize the event. Subscribe() below handles the unknown-to-server case.
+            console.warn(`Ignoring subscription for event unrecognized by MockSecurityCheck client: ${event}`);
             return Promise.resolve();
         }
 
