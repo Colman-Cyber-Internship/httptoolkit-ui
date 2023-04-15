@@ -79,6 +79,8 @@ export type InputRTCMediaTrackClosed = InputRTCEventData['media-track-closed'];
 export type InputSecurityCheckEventData = MockSecCheck.SecurityCheckEventData;
 export type InputSecurityCheckEvent = keyof InputSecurityCheckEventData;
 
+export type InputSecurityCheck = InputSecurityCheckEventData['security-check'];
+
 export type InputStreamMessage = InputRTCMessage | InputWebSocketMessage;
 
 export interface BreakpointBody {

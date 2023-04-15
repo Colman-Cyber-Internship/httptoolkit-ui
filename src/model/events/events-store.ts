@@ -28,7 +28,7 @@ import {
     InputRTCMediaStats,
     InputRTCMediaTrackClosed,
     InputRTCExternalPeerAttached,
-    InputSecurityCheckEvent
+    InputSecurityCheck
 } from '../../types';
 
 import { lazyObservablePromise } from '../../util/observable';
@@ -74,7 +74,7 @@ type EventTypesMap = {
     [K in InputRTCEvent]: InputRTCEventData[K];
 } & {
     // SecurityCheck:
-    'security-check': InputSecurityCheckEvent;
+    'security-check': InputSecurityCheck;
 }
 
 const mockttpEventTypes = [
@@ -300,8 +300,7 @@ export class EventsStore {
                 case 'media-track-closed':
                     return this.markRTCMediaTrackClosed(queuedEvent.event);
                 case 'security-check':
-                    console.log('I got a security check!\n' + JSON.stringify(queuedEvent.event));
-                    break;
+                    return this.addSecurityCheck(queuedEvent.event);
             }
         } catch (e) {
             // It's possible we might fail to parse an input event. This shouldn't happen, but if it
@@ -607,6 +606,19 @@ export class EventsStore {
         } else {
             this.orphanedEvents[event.sessionId] = { type: 'media-track-closed', event };
         }
+    }
+
+    @action
+    private addSecurityCheck(securityCheck: InputSecurityCheck) {
+        const exchange = _.find(this.exchanges, { id: securityCheck.id });
+
+        if (!exchange) {
+            // Handle this later, once the request has arrived
+            this.orphanedEvents[securityCheck.id] = { type: 'security-check', event: securityCheck };
+            return;
+        }
+
+        exchange.addSecurityCheck(securityCheck);
     }
 
     @action.bound

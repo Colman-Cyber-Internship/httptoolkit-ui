@@ -51,7 +51,6 @@ interface ViewEventListProps {
     filteredEvents: CollectedEvent[];
     selectedEvent: CollectedEvent | undefined;
     isPaused: boolean;
-    isMalicious: SecurityCheck;
 
 
     moveSelection: (distance: number) => void;
@@ -320,16 +319,14 @@ interface EventRowProps extends ListChildComponentProps {
     data: {
         selectedEvent: CollectedEvent | undefined;
         events: CollectedEvent[];
-        isMalicious: SecurityCheck;
     }
 }
 
 const EventRow = observer((props: EventRowProps) => {
     const { index, style } = props;
-    const { events, selectedEvent, isMalicious} = props.data;
+    const { events, selectedEvent } = props.data;
     const event = events[index];
     const isSelected = (selectedEvent === event);
-    const isMaliciousTest = (isMalicious.id === index);
 
 
     if (event.isTlsFailure() || event.isTlsTunnel()) {
@@ -338,8 +335,6 @@ const EventRow = observer((props: EventRowProps) => {
             isSelected={isSelected}
             style={style}
             tlsEvent={event}
-            isMalicious={isMalicious.Malicious}
-            isMaliciousTest={isMaliciousTest}
         />;
     } else if (event.isHttp()) {
         if (event.api?.isBuiltInApi && event.api.matchedOperation()) {
@@ -348,8 +343,6 @@ const EventRow = observer((props: EventRowProps) => {
                 isSelected={isSelected}
                 style={style}
                 exchange={event}
-                isMalicious={isMalicious.Malicious}
-                isMaliciousTest={isMaliciousTest}
 
             />
         } else {
@@ -358,8 +351,6 @@ const EventRow = observer((props: EventRowProps) => {
                 isSelected={isSelected}
                 style={style}
                 exchange={event}
-                isMalicious={isMalicious.Malicious}
-                isMaliciousTest={isMaliciousTest}
 
             />;
         }
@@ -369,8 +360,6 @@ const EventRow = observer((props: EventRowProps) => {
             isSelected={isSelected}
             style={style}
             event={event}
-            isMalicious={isMalicious.Malicious}
-            isMaliciousTest={isMaliciousTest}
 
         />;
     } else if (event.isRTCDataChannel() || event.isRTCMediaTrack()) {
@@ -379,8 +368,6 @@ const EventRow = observer((props: EventRowProps) => {
             isSelected={isSelected}
             style={style}
             event={event}
-            isMalicious={isMalicious.Malicious}
-            isMaliciousTest={isMaliciousTest}
 
         />;
     } else {
@@ -392,31 +379,31 @@ const ExchangeRow = observer(({
     index,
     isSelected,
     style,
-    exchange,
-    isMalicious,
-    isMaliciousTest
+    exchange
 }: {
     index: number,
     isSelected: boolean,
     style: {},
-    exchange: HttpExchange,
-    isMalicious: boolean,
-    isMaliciousTest: boolean
+    exchange: HttpExchange
 }) => {
     const {
         request,
         response,
         pinned,
-        category
+        category,
+        securityChecks
     } = exchange;
-    const className = ():string => {
+    const className = (): string => {
         let classString= '';
-        if (isMaliciousTest && isMalicious){
-            classString = "malicious "
+
+        if (securityChecks.length){
+            classString += " malicious";
         }
+
         if (isSelected) {
-            classString+="selected"
+            classString += " selected";
         }
+
         return classString
     }
     return <TrafficEventListRow
@@ -499,28 +486,15 @@ const RTCConnectionRow = observer(({
     index,
     isSelected,
     style,
-    event,
-    isMalicious,
-    isMaliciousTest
+    event
 }: {
     index: number,
     isSelected: boolean,
     style: {},
-    event: RTCConnection,
-    isMalicious: boolean,
-    isMaliciousTest: boolean
+    event: RTCConnection
 }) => {
     const { category, pinned } = event;
-    const className = ():string => {
-        let classString= '';
-        if (isMaliciousTest && isMalicious){
-            classString = "malicious "
-        }
-        if (isSelected) {
-            classString+="selected"
-        }
-        return classString
-    }
+
     return <TrafficEventListRow
         role="row"
         aria-label='row'
@@ -528,7 +502,7 @@ const RTCConnectionRow = observer(({
         data-event-id={event.id}
         tabIndex={isSelected ? 0 : -1}
 
-        className={className()}
+        className={isSelected ? 'selected' : ''}
         style={style}
     >
         <RowPin pinned={pinned}/>
@@ -556,28 +530,15 @@ const RTCStreamRow = observer(({
     index,
     isSelected,
     style,
-    event,
-    isMalicious,
-    isMaliciousTest
+    event
 }: {
     index: number,
     isSelected: boolean,
     style: {},
-    event: RTCStream,
-    isMalicious: boolean,
-    isMaliciousTest: boolean
+    event: RTCStream
 }) => {
     const { category, pinned } = event;
-    const className = ():string => {
-        let classString= '';
-        if (isMaliciousTest && isMalicious){
-            classString = "malicious "
-        }
-        if (isSelected) {
-            classString+="selected"
-        }
-        return classString
-    }
+
     return <TrafficEventListRow
         role="row"
         aria-label='row'
@@ -585,7 +546,7 @@ const RTCStreamRow = observer(({
         data-event-id={event.id}
         tabIndex={isSelected ? 0 : -1}
 
-        className={className()}
+        className={isSelected ? 'selected' : ''}
         style={style}
     >
         <RowPin pinned={pinned}/>
@@ -635,9 +596,7 @@ const BuiltInApiRow = observer((p: {
     index: number,
     exchange: HttpExchange,
     isSelected: boolean,
-    style: {},
-    isMalicious: boolean,
-    isMaliciousTest: boolean
+    style: {}
 }) => {
     const {
         request,
@@ -645,16 +604,7 @@ const BuiltInApiRow = observer((p: {
         category
     } = p.exchange;
     const api = p.exchange.api!; // Only shown for built-in APIs, so this must be set
-    const className = ():string => {
-        let classString= '';
-        if (p.isMaliciousTest && p.isMalicious){
-            classString = "malicious "
-        }
-        if (p.isSelected) {
-            classString+="selected"
-        }
-        return classString
-    }
+
     return <TrafficEventListRow
         role="row"
         aria-label='row'
@@ -662,7 +612,7 @@ const BuiltInApiRow = observer((p: {
         data-event-id={p.exchange.id}
         tabIndex={p.isSelected ? 0 : -1}
 
-        className={className()}
+        className={p.isSelected ? 'malicious' : '' }
         style={p.style}
     >
         <RowPin pinned={pinned}/>
@@ -696,9 +646,7 @@ const TlsRow = observer((p: {
     index: number,
     tlsEvent: FailedTlsConnection | TlsTunnel,
     isSelected: boolean,
-    style: {},
-    isMalicious: boolean,
-    isMaliciousTest: boolean
+    style: {}
 }) => {
     const { tlsEvent } = p;
 
@@ -711,16 +659,7 @@ const TlsRow = observer((p: {
             'cert-rejected': 'Certificate rejected for ',
             'no-shared-cipher': 'HTTPS setup failed for ',
         } as _.Dictionary<string>)[tlsEvent.failureCause]
-        const className = ():string => {
-            let classString= '';
-            if (p.isMaliciousTest && p.isMalicious){
-                classString = "malicious "
-            }
-            if (p.isSelected) {
-                classString+="selected"
-            }
-            return classString
-        }
+
     return <TlsListRow
         role="row"
         aria-label='row'
@@ -728,7 +667,7 @@ const TlsRow = observer((p: {
         data-event-id={tlsEvent.id}
         tabIndex={p.isSelected ? 0 : -1}
 
-        className={className()}
+        className={p.isSelected ? 'selected' : ''}
         style={p.style}
     >
         {
@@ -754,8 +693,7 @@ export class ViewEventList extends React.Component<ViewEventListProps> {
     @computed get listItemData(): EventRowProps['data'] {
         return {
             selectedEvent: this.props.selectedEvent,
-            events: this.props.filteredEvents,
-            isMalicious: this.props.isMalicious
+            events: this.props.filteredEvents
         };
     }
 

@@ -156,20 +156,6 @@ class ViewPage extends React.Component<ViewPageProps> {
         });
     }
 
-    @computed
-    get isMalicious():SecurityCheck {
-        const random = Math.random();
-        const randomBool = random < 0.5;
-        console.log("from view page. The number: "+random + "The bool: "+ randomBool )
-        return {id: 6, Malicious: true, level: 'Critical', detail:"Stam test"};
-    }
-
-    // @computed
-    // get isMalicious2():SecurityCheck {
-    //     fetch('https://api/id)
-    //         .then(response => response.json())
-    // }   
-
     componentDidMount() {
         disposeOnUnmount(this, autorun(() => {
             if (!this.props.eventId) return;
@@ -317,7 +303,6 @@ class ViewPage extends React.Component<ViewPageProps> {
                         filteredEvents={filteredEvents}
                         selectedEvent={this.selectedEvent}
                         isPaused={isPaused}
-                        isMalicious={this.isMalicious}
 
                         moveSelection={this.moveSelection}
                         onSelected={this.onSelected}
