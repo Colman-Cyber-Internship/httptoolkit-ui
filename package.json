@@ -1,6 +1,6 @@
 {
   "name": "httptoolkit-server",
-  "version": "1.12.6",
+  "version": "2.0.0",
   "author": "Tim Perry <pimterry@gmail.com>",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
@@ -67,6 +67,7 @@
     "lookpath": "^1.2.1",
     "mime-types": "^2.1.27",
     "mobx": "^6.3.5",
+    "mocksecurity-check": "file:../mocksecurity-check",
     "mockrtc": "^0.3.1",
     "mockttp": "^3.7.1",
     "node-abort-controller": "^3.0.1",

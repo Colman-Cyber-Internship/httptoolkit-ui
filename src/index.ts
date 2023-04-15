@@ -13,6 +13,9 @@ import {
 import {
     MockRTCAdminPlugin
 } from 'mockrtc';
+import {
+    MockSecurityCheckAdminPlugin
+} from 'mocksecurity-check';
 
 import updateCommand from '@oclif/plugin-update/lib/commands/update';
 
@@ -145,11 +148,13 @@ export async function runHTK(options: {
     // Start a Mockttp standalone server
     const standalone = new PluggableAdmin.AdminServer<{
         http: MockttpAdminPlugin,
-        webrtc: MockRTCAdminPlugin
+        webrtc: MockRTCAdminPlugin,
+        securityCheck: MockSecurityCheckAdminPlugin
     }>({
         adminPlugins: {
             http: MockttpAdminPlugin,
-            webrtc: MockRTCAdminPlugin
+            webrtc: MockRTCAdminPlugin,
+            securityCheck: MockSecurityCheckAdminPlugin,
         },
         pluginDefaults: {
             http: {

@@ -9,7 +9,12 @@
             "request": "launch",
             "name": "Launch server",
             "program": "${workspaceFolder}/bin/run",
-            "args": ["start"]
+            "args": ["start"],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/../mocksecurity-check/dist/**/*.js"
+            ],
+            "sourceMaps": true,
         }
     ]
 }
