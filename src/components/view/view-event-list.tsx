@@ -14,8 +14,7 @@ import {
     RTCStream,
     FailedTlsConnection,
     RTCConnection,
-    TlsTunnel,
-    SecurityCheck
+    TlsTunnel
 } from '../../types';
 
 import {
