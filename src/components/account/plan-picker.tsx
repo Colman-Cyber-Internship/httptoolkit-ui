@@ -300,22 +300,6 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
 
                     <PlanCycle selected={planCycle === 'annual'}>Annual</PlanCycle>
                 </PlanCycleToggle>
-
-                <PlanSmallPrint>
-                    <p>
-                        <strong>Cancel in two clicks, anytime</strong>. <br/>Have questions? <strong><a
-                            href="https://httptoolkit.com/docs/guides/subscription-faq"
-                        >Read the FAQ</a></strong> or email billing@httptoolkit.com.
-                    </p>
-                    <p>
-                        By subscribing to a paid plan, you accept <Nowrap>
-                            <a href="https://httptoolkit.com/terms-of-service">
-                                the HTTP Toolkit Terms of Service
-                            </a>
-                        </Nowrap>.
-                    </p>
-                </PlanSmallPrint>
-
                 <PlanPickerButtons>
                     { email && <p>
                         Logged in as <Nowrap>{ email }</Nowrap>.

@@ -332,22 +332,7 @@ export class HttpDetailsPane extends React.Component<{
                     closeState={exchange.closeState}
                 />);
             }
-        } else {
-            // We only show performance & export for non-websockets, for now:
-
-            // Push all cards below this point to the bottom
-            cards.push(<CardDivider key='divider' />);
-
-            cards.push(<HttpPerformanceCard
-                exchange={exchange}
-                {...this.cardProps.performance}
-            />);
-
-            cards.push(<HttpExportCard
-                exchange={exchange}
-                {...this.cardProps.export}
-            />);
-        }
+        } 
 
         return cards;
     }

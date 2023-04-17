@@ -105,7 +105,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                 <InstructionsStep>
                     <p>To intercept traffic you need to:</p>
                     <ol>
-                        <li><strong>send your traffic via the HTTP Toolkit proxy</strong></li>
+                        <li><strong>send your traffic via the Pipe proxy</strong></li>
                         <li><strong>trust the certificate authority</strong> (if using HTTPS) </li>
                     </ol>
                     <p>
@@ -123,7 +123,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                 </InstructionsStep>
 
                 <InstructionsStep>
-                    <h2>1. Send traffic via HTTP Toolkit</h2>
+                    <h2>1. Send traffic via Pipe</h2>
                     <p>
                         To intercept an HTTP client on this machine, configure it to send traffic via{' '}
                         <CopyableMonoValue>http://localhost:{httpProxyPort}</CopyableMonoValue>.
@@ -146,7 +146,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                     <h2>2. Trust the certificate authority</h2>
                     <p><em>Only required to intercept traffic that uses HTTPS</em></p>
                     <p>
-                        HTTP Toolkit has generated a certificate authority (CA) on your machine. All
+                        Pipe has generated a certificate authority (CA) on your machine. All
                         intercepted HTTPS uses certificates from this CA.
                     </p>
                     { certContent // Not defined in some older server versions

@@ -287,7 +287,7 @@ export const HttpApiPlaceholderCard = observer((props: HttpApiPlaceholderCardPro
 
         <CardSalesPitch source='api'>
             <p>
-                HTTP Toolkit Pro can show you more information about this API.
+                Pipe Pro can show you more information about this API.
             </p>
             <p>
                 Instantly understand this request with inline documentation for the

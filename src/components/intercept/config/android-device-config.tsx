@@ -173,7 +173,7 @@ class AndroidConfig extends React.Component<{
 
         return <ConfigContainer>
             <p>
-                Scan the QR code below on your device to install the HTTP Toolkit
+                Scan the QR code below on your device to install the Pipe
                 app, and start intercepting HTTP & HTTPS traffic.
             </p>
             <p>
@@ -186,7 +186,7 @@ class AndroidConfig extends React.Component<{
                     target='_blank'
                     rel='noreferrer noopener'
                 >
-                    HTTP Toolkit app
+                    Pipe app
                 </a> manually instead.
             </p>
 
@@ -200,12 +200,12 @@ class AndroidConfig extends React.Component<{
             <Spacer />
 
             <p>
-                Once activated, this will send all HTTP & HTTPS traffic to HTTP Toolkit,
+                Once activated, this will send all HTTP & HTTPS traffic to Pipe,
                 and configure the device to trust its HTTPS certificate by default.
             </p>
             <p>
                 <strong>This won't work immediately for all apps.</strong> Some may need changes
-                to trust HTTP Toolkit for HTTPS traffic. <a
+                to trust Pipe for HTTPS traffic. <a
                     href="https://httptoolkit.com/docs/guides/android"
                     target='_blank'
                     rel='noreferrer noopener'
