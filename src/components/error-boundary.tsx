@@ -106,7 +106,7 @@ export class ErrorBoundary extends React.Component {
                         </button>
                     }
                     <button onClick={() => window.location.reload()}>
-                        Reload HTTP Toolkit
+                        Reload Pipe
                     </button>
                 </div>
             </ErrorOverlay>

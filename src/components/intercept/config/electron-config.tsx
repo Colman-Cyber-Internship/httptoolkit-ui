@@ -177,7 +177,7 @@ class ElectronConfig extends React.Component<{
 
         return <ConfigContainer>
             <p>
-                Start an Electron {binary} with HTTP Toolkit's settings injected,
+                Start an Electron {binary} with Pipe's settings injected,
                 to intercept all its HTTP &amp; HTTPS traffic.
             </p>
             {

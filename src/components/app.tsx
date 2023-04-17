@@ -88,7 +88,7 @@ class App extends React.Component<{ accountStore: AccountStore }> {
         return [
             {
                 name: 'Intercept',
-                title: `Connect clients to HTTP Toolkit (${Ctrl}+1)`,
+                title: `Connect clients to Pipe (${Ctrl}+1)`,
                 icon: ['fas', 'plug'],
                 position: 'top',
                 type: 'router',
@@ -102,6 +102,34 @@ class App extends React.Component<{ accountStore: AccountStore }> {
                 type: 'router',
                 url: '/view'
             },
+            //      (this.canVisitSettings
+            //     ? {
+            //         name: 'Settings',
+            //         title: `Reconfigure HTTP Toolkit and manage your account (${Ctrl}+9)`,
+            //         icon: ['fas', 'cog'],
+            //         position: 'bottom',
+            //         type: 'router',
+            //         url: '/settings'
+            //     }
+            //     : {
+            //         name: 'Get Pro',
+            //         title: "Sign up for HTTP Toolkit Pro",
+            //         icon: ['far', 'star'],
+            //         position: 'bottom',
+            //         type: 'callback',
+            //         onClick: () => this.props.accountStore.getPro('sidebar')
+            //     }
+            // ),
+
+            // {
+            //     name: 'Give feedback',
+            //     title: "Suggest features or report issues",
+            //     icon: ['far', 'comment'],
+            //     position: 'bottom',
+            //     highlight: true,
+            //     type: 'web',
+            //     url: 'https://github.com/httptoolkit/httptoolkit/issues/new/choose'
+            // },
 
             ...(
                 (
@@ -120,35 +148,6 @@ class App extends React.Component<{ accountStore: AccountStore }> {
                 }]
                 : []
             ),
-
-            (this.canVisitSettings
-                ? {
-                    name: 'Settings',
-                    title: `Reconfigure HTTP Toolkit and manage your account (${Ctrl}+9)`,
-                    icon: ['fas', 'cog'],
-                    position: 'bottom',
-                    type: 'router',
-                    url: '/settings'
-                }
-                : {
-                    name: 'Get Pro',
-                    title: "Sign up for HTTP Toolkit Pro",
-                    icon: ['far', 'star'],
-                    position: 'bottom',
-                    type: 'callback',
-                    onClick: () => this.props.accountStore.getPro('sidebar')
-                }
-            ),
-
-            {
-                name: 'Give feedback',
-                title: "Suggest features or report issues",
-                icon: ['far', 'comment'],
-                position: 'bottom',
-                highlight: true,
-                type: 'web',
-                url: 'https://github.com/httptoolkit/httptoolkit/issues/new/choose'
-            }
         ] as SidebarItem[];
     }
 

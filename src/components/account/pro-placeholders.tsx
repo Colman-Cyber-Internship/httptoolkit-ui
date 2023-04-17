@@ -15,7 +15,7 @@ export const ProPill = styled(inject('uiStore')((p: { uiStore?: UiStore, classNa
 ))`
     font-size: ${p => p.theme.textSize};
 
-    color: #e1421f;
+    color: #432d81;
     background-color: rgba(225,66,31,0.2);
 `;
 
@@ -66,7 +66,7 @@ export const CardSalesPitch = inject('accountStore')(observer((p: {
 
     <GetProButton onClick={() => p.accountStore!.getPro(p.source)}>
         <Icon icon={['far', 'star']} size='2x' />
-        Get HTTP Toolkit Pro
+        Get Pipe Pro
     </GetProButton>
 </CardSalesPitchContainer>));
 
