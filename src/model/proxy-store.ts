@@ -222,7 +222,7 @@ export class ProxyStore {
             securityCheck: {},
         });
 
-        this.sessionId = this.adminClient.adminSessionBaseUrl;
+        this.sessionId = this.adminClient.adminSessionBaseUrl?.split("/session/")[1];
 
         this.mockttpRequestBuilder = new MockttpPluggableAdmin.MockttpAdminRequestBuilder(
             this.adminClient.schema
