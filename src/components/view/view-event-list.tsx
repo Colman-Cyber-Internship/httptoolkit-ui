@@ -394,7 +394,7 @@ const ExchangeRow = observer(({
     } = exchange;
     const className = (): string => {
         let classString= '';
-
+        
         if (securityChecks.length){
             classString += " malicious";
         }

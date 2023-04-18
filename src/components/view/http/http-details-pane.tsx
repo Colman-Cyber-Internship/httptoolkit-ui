@@ -314,6 +314,7 @@ export class HttpDetailsPane extends React.Component<{
                 response={response}
                 requestUrl={exchange.request.parsedUrl}
                 apiExchange={apiExchange}
+                maliciousMessage={exchange.securityChecks}
                 theme={uiStore!.theme}
             />);
 
