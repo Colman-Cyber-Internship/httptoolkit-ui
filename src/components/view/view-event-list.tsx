@@ -611,7 +611,7 @@ const BuiltInApiRow = observer((p: {
         data-event-id={p.exchange.id}
         tabIndex={p.isSelected ? 0 : -1}
 
-        className={p.isSelected ? 'malicious' : '' }
+        className={p.isSelected ? 'selected' : '' }
         style={p.style}
     >
         <RowPin pinned={pinned}/>
