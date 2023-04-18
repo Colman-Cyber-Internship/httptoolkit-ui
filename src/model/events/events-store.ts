@@ -28,7 +28,8 @@ import {
     InputRTCMediaStats,
     InputRTCMediaTrackClosed,
     InputRTCExternalPeerAttached,
-    InputSecurityCheck
+    InputSecurityCheck,
+    ExchangeMessage
 } from '../../types';
 
 import { lazyObservablePromise } from '../../util/observable';
@@ -396,6 +397,8 @@ export class EventsStore {
             return;
         }
 
+        tempSecurityCheck(exchange);
+
         exchange.setResponse(response);
     }
 
@@ -695,6 +698,10 @@ export class EventsStore {
                 this.events.find(e => e.id === id)!.pinned = true;
             })));
         }
+    }
+
+    private tempSecurityCheck(exchange: HttpExchange) {
+        exchange.response
     }
 
 }

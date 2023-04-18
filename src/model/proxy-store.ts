@@ -140,6 +140,8 @@ export class ProxyStore {
     @observable
     serverVersion!: string; // Definitely set *after* initialization
 
+    sessionId?: string;
+
     readonly initialized = lazyObservablePromise(async () => {
         await this.accountStore.initialized;
 
@@ -219,6 +221,8 @@ export class ProxyStore {
             webrtc: {},
             securityCheck: {},
         });
+
+        this.sessionId = this.adminClient.adminSessionBaseUrl;
 
         this.mockttpRequestBuilder = new MockttpPluggableAdmin.MockttpAdminRequestBuilder(
             this.adminClient.schema
