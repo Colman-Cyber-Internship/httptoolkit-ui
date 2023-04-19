@@ -25,7 +25,7 @@ import {
     InputRTCMediaTrackClosed,
     InputRTCExternalPeerAttached,
     InputSecurityCheck,
-    ExchangeMessage,
+    HtkResponse
 } from "../../types";
 
 import { lazyObservablePromise } from "../../util/observable";
@@ -134,6 +134,8 @@ type OrphanableQueuedEvent<
     | "media-track-closed"
     | "tls-passthrough-closed"
 > = { type: T; event: EventTypesMap[T] };
+
+type Report = {severity: string,statusMessage: string};
 
 export class EventsStore {
     constructor(
@@ -402,9 +404,9 @@ export class EventsStore {
             return;
         }
 
-        this.tempSecurityCheck(exchange);
-
         exchange.setResponse(response);
+
+        this.tempSecurityCheck(exchange);
     }
 
     @action
@@ -765,13 +767,40 @@ export class EventsStore {
         }
     }
 
-    private tempSecurityCheck(exchange: HttpExchange) {
-        console.log(
-            `sessionId: ${this.proxyStore.sessionId}\n` +
-            `exchange id: ${exchange.id}`
-        );
+    private async tempSecurityCheck(exchange: HttpExchange) {
 
-        fetch(`http://localhost:45456/session/${this.proxyStore.sessionId}`, {
+        const checks: ((e: HtkResponse) => Promise<Report | undefined>)[]= [
+            async resp => await resp.body.decodedPromise
+                && resp.headers['content-type']
+                && (
+                    (
+                        [
+                            'text/javascript',
+                            'application/javascript'
+                        ].includes(resp.headers['content-type']!.split(';')[0])
+                        && resp.body.decoded?.toString().includes('innerHTML')
+                    ) || (
+                        resp.headers['content-type']!.split(';')[0]=== 'text/html'
+                        && resp.body.decoded?.toString()
+                            .split('<script>')
+                            .slice(1)
+                            .map(script => script.split('<\\script>')[0])
+                            .filter(str => str.length)
+                            .some(script => script.includes('innerHTML'))
+                    )
+                ) && {
+                severity: "medium",
+                statusMessage: "Response contains a script containing 'innerHTML'"
+            } || undefined
+        ];
+
+        (await Promise.all(checks.map(check => check(exchange.response as HtkResponse))))
+            .filter(v => !!v)
+            .forEach((report) => this.reportSecurityCheck(exchange.id, report!));
+    }
+
+    private reportSecurityCheck(messageID: string, report: Report) {
+        return fetch(`http://localhost:45456/session/${this.proxyStore.sessionId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -779,9 +808,9 @@ export class EventsStore {
             body: JSON.stringify({
                 query: `mutation {
                     reportSecurityCheck(input: {
-                        id: "${exchange.id}",
-                        severity: "high",
-                        statusMessage: "This looks bad"
+                        id: "${messageID}",
+                        severity: "${report.severity}",
+                        statusMessage: "${report.statusMessage}"
                     })
                 }`
             }),
