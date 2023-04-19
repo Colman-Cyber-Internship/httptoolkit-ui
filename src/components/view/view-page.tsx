@@ -13,7 +13,7 @@ import {
 import { observer, disposeOnUnmount, inject } from 'mobx-react';
 import * as portals from 'react-reverse-portal';
 
-import { WithInjected, CollectedEvent } from '../../types';
+import { WithInjected, CollectedEvent, SecurityCheck } from '../../types';
 import { styled } from '../../styles';
 import { useHotkeys, isEditable } from '../../util/ui';
 import { debounceComputed } from '../../util/observable';
@@ -155,13 +155,6 @@ class ViewPage extends React.Component<ViewPageProps> {
             id: this.props.eventId
         });
     }
-
-    // @computed
-    // get isMalicious() {
-    //     return _.find(this.props.eventsStore.events, {
-    //         id: this.props.eventId
-    //     });
-    // }
 
     componentDidMount() {
         disposeOnUnmount(this, autorun(() => {
@@ -310,7 +303,6 @@ class ViewPage extends React.Component<ViewPageProps> {
                         filteredEvents={filteredEvents}
                         selectedEvent={this.selectedEvent}
                         isPaused={isPaused}
-                        // isMalicious={isMalicious}
 
                         moveSelection={this.moveSelection}
                         onSelected={this.onSelected}

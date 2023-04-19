@@ -15,6 +15,7 @@ import {
     MockttpBreakpointedResponse,
     InputCompletedRequest,
     MockttpBreakpointResponseResult,
+    InputSecurityCheck,
 } from "../../types";
 import {
     fakeBuffer,
@@ -269,6 +270,9 @@ export class HttpExchange extends HTKEventBase {
     @observable
     public abortMessage: string | undefined;
 
+    @observable
+    public securityChecks: InputSecurityCheck[] = [];
+
     updateFromCompletedRequest(request: InputCompletedRequest, matchedRule: HtkMockRule | false) {
         if (request.body instanceof HttpBody) {
             // If this request was used in new HttpExchange, it's mutated in some ways, and this
@@ -341,6 +345,10 @@ export class HttpExchange extends HTKEventBase {
                 return api;
             })
         );
+    }
+
+    addSecurityCheck(securityCheck: InputSecurityCheck) {
+        this.securityChecks.push(securityCheck);
     }
 
     // Must only be called when the exchange will no longer be used. Ensures that large data is

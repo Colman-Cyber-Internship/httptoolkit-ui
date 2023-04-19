@@ -3,7 +3,7 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import { get } from 'typesafe-get';
 
-import { HtkResponse, Omit } from '../../../types';
+import { HtkResponse, InputSecurityCheck } from '../../../types';
 import { Theme } from '../../../styles';
 
 import { ApiExchange } from '../../../model/api/api-interfaces';
@@ -37,10 +37,11 @@ interface HttpResponseCardProps extends CollapsibleCardProps  {
     requestUrl: URL;
     response: HtkResponse;
     apiExchange: ApiExchange | undefined;
+    maliciousMessage: InputSecurityCheck[];
 }
 
 export const HttpResponseCard = observer((props: HttpResponseCardProps) => {
-    const { response, requestUrl, theme, apiExchange } = props;
+    const { response, requestUrl, theme, apiExchange, maliciousMessage } = props;
 
     const apiResponseDescription = get(apiExchange, 'response', 'description');
     const statusDocs = getStatusDocs(response.statusCode);
@@ -73,7 +74,7 @@ export const HttpResponseCard = observer((props: HttpResponseCardProps) => {
             <CollapsibleSection>
                 <CollapsibleSectionSummary>
                     <ContentLabel>Status:</ContentLabel>{' '}
-                    {response.statusCode} {response.statusMessage || getStatusMessage(response.statusCode)}
+                    {response.statusCode} {response.statusMessage || getStatusMessage(response.statusCode)}                    
                 </CollapsibleSectionSummary>
 
                 {
@@ -84,6 +85,7 @@ export const HttpResponseCard = observer((props: HttpResponseCardProps) => {
                     : null
                 }
             </CollapsibleSection>
+            {maliciousMessage.length ? <div><ContentLabel>malicious:</ContentLabel>{' '}{maliciousMessage[0].statusMessage}</div> : null}
 
             <ContentLabelBlock>Headers</ContentLabelBlock>
             <HeaderDetails headers={response.headers} requestUrl={requestUrl} />

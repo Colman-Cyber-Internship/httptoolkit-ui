@@ -25,6 +25,7 @@ import type {
 } from 'mockttp/dist/rules/requests/request-handler-definitions';
 
 import * as MockRTC from 'mockrtc';
+import * as MockSecCheck from 'mocksecurity-check';
 
 import type { ObservablePromise } from './util/observable';
 
@@ -74,6 +75,11 @@ export type InputRTCMessage =
 export type InputRTCMediaTrackOpened = InputRTCEventData['media-track-opened'];
 export type InputRTCMediaStats = InputRTCEventData['media-track-stats'];
 export type InputRTCMediaTrackClosed = InputRTCEventData['media-track-closed'];
+
+export type InputSecurityCheckEventData = MockSecCheck.SecurityCheckEventData;
+export type InputSecurityCheckEvent = keyof InputSecurityCheckEventData;
+
+export type InputSecurityCheck = InputSecurityCheckEventData['security-check'];
 
 export type InputStreamMessage = InputRTCMessage | InputWebSocketMessage;
 
@@ -151,6 +157,12 @@ export type CollectedEvent =
     | RTCDataChannel
     | RTCMediaTrack;
 
+export type SecurityCheck ={
+    id: number,
+    Malicious: boolean,
+    level: string,
+    detail: string
+}
 export type ExchangeMessage = HtkRequest | HtkResponse;
 export type RTCStream = RTCDataChannel | RTCMediaTrack;
 
