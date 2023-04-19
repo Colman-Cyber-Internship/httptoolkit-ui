@@ -1,10 +1,6 @@
-import * as _ from 'lodash';
-import {
-    observable,
-    action,
-    computed,
-} from 'mobx';
-import { HarParseError } from 'har-validator';
+import * as _ from "lodash";
+import { observable, action, computed } from "mobx";
+import { HarParseError } from "har-validator";
 
 import {
     InputResponse,
@@ -28,160 +24,169 @@ import {
     InputRTCMediaStats,
     InputRTCMediaTrackClosed,
     InputRTCExternalPeerAttached,
-    InputSecurityCheck
-} from '../../types';
+    InputSecurityCheck,
+    HtkResponse
+} from "../../types";
 
-import { lazyObservablePromise } from '../../util/observable';
-import { reportError } from '../../errors';
+import { lazyObservablePromise } from "../../util/observable";
+import { reportError } from "../../errors";
 
 import { ProxyStore } from "../proxy-store";
-import { ApiStore } from '../api/api-store';
-import { RulesStore } from '../rules/rules-store';
-import { findItem, isRuleGroup } from '../rules/rules-structure';
+import { ApiStore } from "../api/api-store";
+import { RulesStore } from "../rules/rules-store";
+import { findItem, isRuleGroup } from "../rules/rules-structure";
 
-import { parseSource } from '../http/sources';
-import { parseHar } from '../http/har';
+import { parseSource } from "../http/sources";
+import { parseHar } from "../http/har";
 
-import { FailedTlsConnection } from '../tls/failed-tls-connection';
-import { TlsTunnel } from '../tls/tls-tunnel';
-import { HttpExchange } from '../http/exchange';
-import { WebSocketStream } from '../websockets/websocket-stream';
-import { RTCConnection } from '../webrtc/rtc-connection';
-import { RTCDataChannel } from '../webrtc/rtc-data-channel';
-import { RTCMediaTrack } from '../webrtc/rtc-media-track';
+import { FailedTlsConnection } from "../tls/failed-tls-connection";
+import { TlsTunnel } from "../tls/tls-tunnel";
+import { HttpExchange } from "../http/exchange";
+import { WebSocketStream } from "../websockets/websocket-stream";
+import { RTCConnection } from "../webrtc/rtc-connection";
+import { RTCDataChannel } from "../webrtc/rtc-data-channel";
+import { RTCMediaTrack } from "../webrtc/rtc-media-track";
 
 // Would be nice to magically infer this from the overloaded on() type, but sadly:
 // https://github.com/Microsoft/TypeScript/issues/24275#issuecomment-390701982
 type EventTypesMap = {
     // HTTP:
-    'request-initiated': InputInitiatedRequest
-    'request': InputCompletedRequest
-    'response': InputResponse
+    "request-initiated": InputInitiatedRequest;
+    request: InputCompletedRequest;
+    response: InputResponse;
     // WebSockets:
-    'websocket-request': InputCompletedRequest,
-    'websocket-accepted': InputResponse,
-    'websocket-message-received': InputWebSocketMessage,
-    'websocket-message-sent': InputWebSocketMessage,
-    'websocket-close': InputWebSocketClose,
+    "websocket-request": InputCompletedRequest;
+    "websocket-accepted": InputResponse;
+    "websocket-message-received": InputWebSocketMessage;
+    "websocket-message-sent": InputWebSocketMessage;
+    "websocket-close": InputWebSocketClose;
     // Mockttp misc:
-    'abort': InputInitiatedRequest,
-    'tls-client-error': InputTlsFailure,
-    'tls-passthrough-opened': InputTlsPassthrough,
-    'tls-passthrough-closed': InputTlsPassthrough,
-    'client-error': InputClientError,
+    abort: InputInitiatedRequest;
+    "tls-client-error": InputTlsFailure;
+    "tls-passthrough-opened": InputTlsPassthrough;
+    "tls-passthrough-closed": InputTlsPassthrough;
+    "client-error": InputClientError;
 } & {
-    // MockRTC:
-    [K in InputRTCEvent]: InputRTCEventData[K];
-} & {
-    // SecurityCheck:
-    'security-check': InputSecurityCheck;
-}
+        // MockRTC:
+        [K in InputRTCEvent]: InputRTCEventData[K];
+    } & {
+        // SecurityCheck:
+        "security-check": InputSecurityCheck;
+    };
 
 const mockttpEventTypes = [
-    'request-initiated',
-    'request',
-    'response',
-    'websocket-request',
-    'websocket-accepted',
-    'websocket-message-received',
-    'websocket-message-sent',
-    'websocket-close',
-    'abort',
-    'tls-client-error',
-    'tls-passthrough-opened',
-    'tls-passthrough-closed',
-    'client-error'
+    "request-initiated",
+    "request",
+    "response",
+    "websocket-request",
+    "websocket-accepted",
+    "websocket-message-received",
+    "websocket-message-sent",
+    "websocket-close",
+    "abort",
+    "tls-client-error",
+    "tls-passthrough-opened",
+    "tls-passthrough-closed",
+    "client-error",
 ] as const;
 
 const mockRTCEventTypes = [
-    'peer-connected',
-    'peer-disconnected',
-    'external-peer-attached',
-    'data-channel-opened',
-    'data-channel-message-sent',
-    'data-channel-message-received',
-    'data-channel-closed',
-    'media-track-opened',
-    'media-track-stats',
-    'media-track-closed'
+    "peer-connected",
+    "peer-disconnected",
+    "external-peer-attached",
+    "data-channel-opened",
+    "data-channel-message-sent",
+    "data-channel-message-received",
+    "data-channel-closed",
+    "media-track-opened",
+    "media-track-stats",
+    "media-track-closed",
 ] as const;
 
-const mockSecurityEventTypes = [
-    'security-check'
-] as const;
+const mockSecurityEventTypes = ["security-check"] as const;
 
 type MockttpEventType = typeof mockttpEventTypes[number];
 type MockRTCEventType = typeof mockRTCEventTypes[number];
 type MockSecurityEventType = typeof mockSecurityEventTypes[number];
 
-type EventType =
-    | MockttpEventType
-    | MockRTCEventType
-    | MockSecurityEventType;
+type EventType = MockttpEventType | MockRTCEventType | MockSecurityEventType;
 
-type QueuedEvent = ({
-    [T in EventType]: { type: T, event: EventTypesMap[T] }
-}[EventType]);
+type QueuedEvent = {
+    [T in EventType]: { type: T; event: EventTypesMap[T] };
+}[EventType];
 
-type OrphanableQueuedEvent<T extends
-    | 'response'
-    | 'abort'
-    | 'websocket-accepted'
-    | 'websocket-message-received'
-    | 'websocket-message-sent'
-    | 'websocket-close'
-    | 'peer-disconnected'
-    | 'external-peer-attached'
-    | 'data-channel-opened'
-    | 'data-channel-message-sent'
-    | 'data-channel-message-received'
-    | 'data-channel-closed'
-    | 'media-track-opened'
-    | 'media-track-stats'
-    | 'media-track-closed'
-    | 'tls-passthrough-closed'
-> = { type: T, event: EventTypesMap[T] };
+type OrphanableQueuedEvent<
+    T extends
+    | "response"
+    | "abort"
+    | "websocket-accepted"
+    | "websocket-message-received"
+    | "websocket-message-sent"
+    | "websocket-close"
+    | "peer-disconnected"
+    | "external-peer-attached"
+    | "data-channel-opened"
+    | "data-channel-message-sent"
+    | "data-channel-message-received"
+    | "data-channel-closed"
+    | "media-track-opened"
+    | "media-track-stats"
+    | "media-track-closed"
+    | "tls-passthrough-closed"
+> = { type: T; event: EventTypesMap[T] };
+
+type Report = {severity: string,statusMessage: string};
 
 export class EventsStore {
-
     constructor(
         private proxyStore: ProxyStore,
         private apiStore: ApiStore,
         private rulesStore: RulesStore
-    ) { }
+    ) {}
 
     readonly initialized = lazyObservablePromise(async () => {
         await Promise.all([
             this.proxyStore.initialized,
             this.apiStore.initialized,
-            this.rulesStore.initialized
+            this.rulesStore.initialized,
         ]);
 
         mockttpEventTypes.forEach(<T extends MockttpEventType>(eventName: T) => {
-            this.proxyStore.onMockttpEvent(eventName, ((eventData: EventTypesMap[T]) => {
-                if (this.isPaused) return;
-                this.eventQueue.push({ type: eventName, event: eventData } as any);
-                this.queueEventFlush();
-            }));
+            this.proxyStore.onMockttpEvent(
+                eventName,
+                (eventData: EventTypesMap[T]) => {
+                    if (this.isPaused) return;
+                    this.eventQueue.push({ type: eventName, event: eventData } as any);
+                    this.queueEventFlush();
+                }
+            );
         });
 
         mockRTCEventTypes.forEach(<T extends MockRTCEventType>(eventName: T) => {
-            this.proxyStore.onMockRTCEvent(eventName, ((eventData: EventTypesMap[T]) => {
-                if (this.isPaused) return;
-                this.eventQueue.push({ type: eventName, event: eventData } as any);
-                this.queueEventFlush();
-            }));
+            this.proxyStore.onMockRTCEvent(
+                eventName,
+                (eventData: EventTypesMap[T]) => {
+                    if (this.isPaused) return;
+                    this.eventQueue.push({ type: eventName, event: eventData } as any);
+                    this.queueEventFlush();
+                }
+            );
         });
 
-        mockSecurityEventTypes.forEach(<T extends MockSecurityEventType>(eventName: T) => {
-            this.proxyStore.onMockSecurityEvent(eventName, ((eventData:EventTypesMap[T]) => {
-                if (this.isPaused) return;
-                this.eventQueue.push({ type: eventName, event: eventData } as any);
-                this.queueEventFlush();
-            }))
-        })
+        mockSecurityEventTypes.forEach(
+            <T extends MockSecurityEventType>(eventName: T) => {
+                this.proxyStore.onMockSecurityEvent(
+                    eventName,
+                    (eventData: EventTypesMap[T]) => {
+                        if (this.isPaused) return;
+                        this.eventQueue.push({ type: eventName, event: eventData } as any);
+                        this.queueEventFlush();
+                    }
+                );
+            }
+        );
 
-        console.log('Events store initialized');
+        console.log("Events store initialized");
     });
 
     @observable
@@ -228,10 +233,10 @@ export class EventsStore {
     @computed.struct
     get activeSources() {
         return _(this.exchanges)
-            .map(e => e.request.headers['user-agent'])
+            .map((e) => e.request.headers["user-agent"])
             .uniq()
             .map(parseSource)
-            .uniqBy(s => s.summary)
+            .uniqBy((s) => s.summary)
             .value();
     }
 
@@ -250,56 +255,56 @@ export class EventsStore {
     private updateFromQueuedEvent = (queuedEvent: QueuedEvent) => {
         try {
             switch (queuedEvent.type) {
-                case 'request-initiated':
+                case "request-initiated":
                     this.addInitiatedRequest(queuedEvent.event);
                     return this.checkForOrphan(queuedEvent.event.id);
-                case 'request':
+                case "request":
                     this.addCompletedRequest(queuedEvent.event);
                     return this.checkForOrphan(queuedEvent.event.id);
-                case 'response':
+                case "response":
                     return this.setResponse(queuedEvent.event);
-                case 'websocket-request':
+                case "websocket-request":
                     this.addWebSocketRequest(queuedEvent.event);
                     return this.checkForOrphan(queuedEvent.event.id);
-                case 'websocket-accepted':
+                case "websocket-accepted":
                     return this.addAcceptedWebSocketResponse(queuedEvent.event);
-                case 'websocket-message-received':
-                case 'websocket-message-sent':
+                case "websocket-message-received":
+                case "websocket-message-sent":
                     return this.addWebSocketMessage(queuedEvent.event);
-                case 'websocket-close':
+                case "websocket-close":
                     return this.markWebSocketClosed(queuedEvent.event);
-                case 'abort':
+                case "abort":
                     return this.markRequestAborted(queuedEvent.event);
-                case 'tls-passthrough-opened':
+                case "tls-passthrough-opened":
                     this.addTlsTunnel(queuedEvent.event);
                     return this.checkForOrphan(queuedEvent.event.id);
-                case 'tls-passthrough-closed':
+                case "tls-passthrough-closed":
                     return this.markTlsTunnelClosed(queuedEvent.event);
-                case 'tls-client-error':
+                case "tls-client-error":
                     return this.addFailedTlsRequest(queuedEvent.event);
-                case 'client-error':
+                case "client-error":
                     return this.addClientError(queuedEvent.event);
 
-                case 'peer-connected':
+                case "peer-connected":
                     return this.addRTCPeerConnection(queuedEvent.event);
-                case 'external-peer-attached':
+                case "external-peer-attached":
                     return this.attachExternalRTCPeer(queuedEvent.event);
-                case 'peer-disconnected':
+                case "peer-disconnected":
                     return this.markRTCPeerDisconnected(queuedEvent.event);
-                case 'data-channel-opened':
+                case "data-channel-opened":
                     return this.addRTCDataChannel(queuedEvent.event);
-                case 'data-channel-message-sent':
-                case 'data-channel-message-received':
+                case "data-channel-message-sent":
+                case "data-channel-message-received":
                     return this.addRTCDataChannelMessage(queuedEvent.event);
-                case 'data-channel-closed':
+                case "data-channel-closed":
                     return this.markRTCDataChannelClosed(queuedEvent.event);
-                case 'media-track-opened':
+                case "media-track-opened":
                     return this.addRTCMediaTrack(queuedEvent.event);
-                case 'media-track-stats':
+                case "media-track-stats":
                     return this.addRTCMediaTrackStats(queuedEvent.event);
-                case 'media-track-closed':
+                case "media-track-closed":
                     return this.markRTCMediaTrackClosed(queuedEvent.event);
-                case 'security-check':
+                case "security-check":
                     return this.addSecurityCheck(queuedEvent.event);
             }
         } catch (e) {
@@ -307,7 +312,7 @@ export class EventsStore {
             // does it's better to drop that one event and continue instead of breaking completely.
             reportError(e);
         }
-    }
+    };
 
     private checkForOrphan(id: string) {
         // Sometimes we receive events out of order (response/abort before request).
@@ -342,13 +347,16 @@ export class EventsStore {
     private getMatchedRule(request: InputCompletedRequest) {
         if (!request.matchedRuleId) return false;
 
-        const matchedItem = findItem(this.rulesStore.rules, { id: request.matchedRuleId });
+        const matchedItem = findItem(this.rulesStore.rules, {
+            id: request.matchedRuleId,
+        });
 
         // This shouldn't really happen, but could in race conditions with rule editing:
         if (!matchedItem) return false;
 
         // This should never happen, but it's good to check:
-        if (isRuleGroup(matchedItem)) throw new Error('Request event unexpectedly matched rule group');
+        if (isRuleGroup(matchedItem))
+            throw new Error("Request event unexpectedly matched rule group");
 
         return matchedItem;
     }
@@ -379,9 +387,9 @@ export class EventsStore {
 
         if (!exchange) {
             // Handle this later, once the request has arrived
-            this.orphanedEvents[request.id] = { type: 'abort', event: request };
+            this.orphanedEvents[request.id] = { type: "abort", event: request };
             return;
-        };
+        }
 
         exchange.markAborted(request);
     }
@@ -392,11 +400,13 @@ export class EventsStore {
 
         if (!exchange) {
             // Handle this later, once the request has arrived
-            this.orphanedEvents[response.id] = { type: 'response', event: response };
+            this.orphanedEvents[response.id] = { type: "response", event: response };
             return;
         }
 
         exchange.setResponse(response);
+
+        this.tempSecurityCheck(exchange);
     }
 
     @action
@@ -414,7 +424,10 @@ export class EventsStore {
 
         if (!stream) {
             // Handle this later, once the request has arrived
-            this.orphanedEvents[response.id] = { type: 'websocket-accepted', event: response };
+            this.orphanedEvents[response.id] = {
+                type: "websocket-accepted",
+                event: response,
+            };
             return;
         }
 
@@ -430,7 +443,7 @@ export class EventsStore {
             // Handle this later, once the request has arrived
             this.orphanedEvents[message.streamId] = {
                 type: `websocket-message-${message.direction}`,
-                event: message
+                event: message,
             };
             return;
         }
@@ -445,7 +458,8 @@ export class EventsStore {
         if (!stream) {
             // Handle this later, once the request has arrived
             this.orphanedEvents[close.streamId] = {
-                type: 'websocket-close', event: close
+                type: "websocket-close",
+                event: close,
             };
             return;
         }
@@ -460,12 +474,15 @@ export class EventsStore {
 
     @action
     private markTlsTunnelClosed(closeEvent: InputTlsPassthrough) {
-        const tunnel = _.find(this.events, { id: closeEvent.id }) as TlsTunnel | undefined;
+        const tunnel = _.find(this.events, { id: closeEvent.id }) as
+            | TlsTunnel
+            | undefined;
 
         if (!tunnel) {
             // Handle this later, once the tunnel open event has arrived
             this.orphanedEvents[closeEvent.id] = {
-                type: 'tls-passthrough-closed', event: close
+                type: "tls-passthrough-closed",
+                event: close,
             };
             return;
         }
@@ -475,24 +492,33 @@ export class EventsStore {
 
     @action
     private addFailedTlsRequest(request: InputTlsFailure) {
-        if (_.some(this.events, (event) =>
-            event.isTlsFailure() &&
-            event.upstreamHostname === request.hostname &&
-            event.remoteIpAddress === request.remoteIpAddress
-        )) return; // Drop duplicate TLS failures
+        if (
+            _.some(
+                this.events,
+                (event) =>
+                    event.isTlsFailure() &&
+                    event.upstreamHostname === request.hostname &&
+                    event.remoteIpAddress === request.remoteIpAddress
+            )
+        )
+            return; // Drop duplicate TLS failures
 
         this.events.push(new FailedTlsConnection(request));
     }
 
     @action
     private addClientError(error: InputClientError) {
-        if (error.errorCode === 'ECONNRESET' && !error.request.method && !error.request.url) {
+        if (
+            error.errorCode === "ECONNRESET" &&
+            !error.request.method &&
+            !error.request.url
+        ) {
             // We don't bother showing client resets before any data was sent at all.
             // Not interesting, nothing to show, and generally all a bit noisey.
             return;
         }
 
-        if (error.errorCode === 'ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC') {
+        if (error.errorCode === "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC") {
             // The TLS connection was interrupted by a bad packet. Generally paired with
             // an abort event for ongoing requests, so no need for a separate error.
             return;
@@ -500,14 +526,14 @@ export class EventsStore {
 
         const exchange = new HttpExchange(this.apiStore, {
             ...error.request,
-            protocol: error.request.protocol || '',
-            method: error.request.method || '',
-            url: error.request.url || `${error.request.protocol || 'http'}://`,
-            path: error.request.path || '/',
-            headers: error.request.headers
+            protocol: error.request.protocol || "",
+            method: error.request.method || "",
+            url: error.request.url || `${error.request.protocol || "http"}://`,
+            path: error.request.path || "/",
+            headers: error.request.headers,
         });
 
-        if (error.response === 'aborted') {
+        if (error.response === "aborted") {
             exchange.markAborted(error.request);
         } else {
             exchange.setResponse(error.response);
@@ -523,88 +549,120 @@ export class EventsStore {
 
     @action
     private attachExternalRTCPeer(event: InputRTCExternalPeerAttached) {
-        const conn = this.rtcConnections.find(c => c.id === event.sessionId);
-        const otherHalf = this.rtcConnections.find(c => c.isOtherHalfOf(event));
+        const conn = this.rtcConnections.find((c) => c.id === event.sessionId);
+        const otherHalf = this.rtcConnections.find((c) => c.isOtherHalfOf(event));
 
         if (conn) {
             conn.attachExternalPeer(event, otherHalf);
             if (otherHalf) otherHalf.connectOtherHalf(conn);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'external-peer-attached', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "external-peer-attached",
+                event,
+            };
         }
     }
 
     @action
     private markRTCPeerDisconnected(event: InputRTCPeerDisconnected) {
-        const conn = this.rtcConnections.find(c => c.id === event.sessionId);
+        const conn = this.rtcConnections.find((c) => c.id === event.sessionId);
         if (conn) {
             conn.markClosed(event);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'peer-disconnected', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "peer-disconnected",
+                event,
+            };
         }
     }
 
     @action
     private addRTCDataChannel(event: InputRTCDataChannelOpened) {
-        const conn = this.rtcConnections.find(c => c.id === event.sessionId);
+        const conn = this.rtcConnections.find((c) => c.id === event.sessionId);
         if (conn) {
             const dc = new RTCDataChannel(event, conn);
             this.events.push(dc);
             conn.addStream(dc);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'data-channel-opened', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "data-channel-opened",
+                event,
+            };
         }
     }
 
     @action
     private addRTCDataChannelMessage(event: InputRTCMessage) {
-        const channel = this.rtcDataChannels.find(c => c.sessionId === event.sessionId && c.channelId === event.channelId);
+        const channel = this.rtcDataChannels.find(
+            (c) => c.sessionId === event.sessionId && c.channelId === event.channelId
+        );
         if (channel) {
             channel.addMessage(event);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: `data-channel-message-${event.direction}`, event };
+            this.orphanedEvents[event.sessionId] = {
+                type: `data-channel-message-${event.direction}`,
+                event,
+            };
         }
     }
 
     @action
     private markRTCDataChannelClosed(event: InputRTCDataChannelClosed) {
-        const channel = this.rtcDataChannels.find(c => c.sessionId === event.sessionId && c.channelId === event.channelId);
+        const channel = this.rtcDataChannels.find(
+            (c) => c.sessionId === event.sessionId && c.channelId === event.channelId
+        );
         if (channel) {
             channel.markClosed(event);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'data-channel-closed', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "data-channel-closed",
+                event,
+            };
         }
     }
 
     @action
     private addRTCMediaTrack(event: InputRTCMediaTrackOpened) {
-        const conn = this.rtcConnections.find(c => c.id === event.sessionId);
+        const conn = this.rtcConnections.find((c) => c.id === event.sessionId);
         if (conn) {
             const track = new RTCMediaTrack(event, conn);
             this.events.push(track);
             conn.addStream(track);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'media-track-opened', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "media-track-opened",
+                event,
+            };
         }
     }
 
     @action
     private addRTCMediaTrackStats(event: InputRTCMediaStats) {
-        const track = this.rtcMediaTracks.find(t => t.sessionId === event.sessionId && t.mid === event.trackMid);
+        const track = this.rtcMediaTracks.find(
+            (t) => t.sessionId === event.sessionId && t.mid === event.trackMid
+        );
         if (track) {
             track.addStats(event);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'media-track-stats', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "media-track-stats",
+                event,
+            };
         }
     }
 
     @action
     private markRTCMediaTrackClosed(event: InputRTCMediaTrackClosed) {
-        const track = this.rtcMediaTracks.find(t => t.sessionId === event.sessionId && t.mid === event.trackMid);
+        const track = this.rtcMediaTracks.find(
+            (t) => t.sessionId === event.sessionId && t.mid === event.trackMid
+        );
         if (track) {
             track.markClosed(event);
         } else {
-            this.orphanedEvents[event.sessionId] = { type: 'media-track-closed', event };
+            this.orphanedEvents[event.sessionId] = {
+                type: "media-track-closed",
+                event,
+            };
         }
     }
 
@@ -614,7 +672,10 @@ export class EventsStore {
 
         if (!exchange) {
             // Handle this later, once the request has arrived
-            this.orphanedEvents[securityCheck.id] = { type: 'security-check', event: securityCheck };
+            this.orphanedEvents[securityCheck.id] = {
+                type: "security-check",
+                event: securityCheck,
+            };
             return;
         }
 
@@ -632,7 +693,7 @@ export class EventsStore {
             streams.forEach((stream) => this.deleteEvent(stream));
         }
 
-        if ('cleanup' in event) event.cleanup();
+        if ("cleanup" in event) event.cleanup();
     }
 
     @action.bound
@@ -643,47 +704,52 @@ export class EventsStore {
         );
 
         this.events.clear();
-        unpinnedEvents.forEach((event) => { if ('cleanup' in event) event.cleanup() });
+        unpinnedEvents.forEach((event) => {
+            if ("cleanup" in event) event.cleanup();
+        });
 
         this.events.push(...pinnedEvents);
         this.orphanedEvents = {};
 
         // If GC is exposed (desktop 0.1.22+), trigger it when data is cleared,
         // as this is the perfect point to pack everything down.
-        if ('gc' in window) (window as any).gc();
+        if ("gc" in window) (window as any).gc();
     }
 
     async loadFromHar(harContents: {}) {
-        const {
-            requests,
-            responses,
-            aborts,
-            tlsErrors,
-            pinnedIds
-        } = await parseHar(harContents).catch((harParseError: HarParseError) => {
-            // Log all suberrors, for easier reporting & debugging.
-            // This does not include HAR data - only schema errors like
-            // 'bodySize is missing' at 'entries[1].request'
-            harParseError.errors.forEach((error) => {
-                console.log(error);
+        const { requests, responses, aborts, tlsErrors, pinnedIds } =
+            await parseHar(harContents).catch((harParseError: HarParseError) => {
+                // Log all suberrors, for easier reporting & debugging.
+                // This does not include HAR data - only schema errors like
+                // 'bodySize is missing' at 'entries[1].request'
+                harParseError.errors.forEach((error) => {
+                    console.log(error);
+                });
+                throw harParseError;
             });
-            throw harParseError;
-        });
 
         // We now take each of these input items, and put them on the queue to be added
         // to the UI like any other seen request data. Arguably we could call addRequest &
         // setResponse etc directly, but this is nicer if the UI thread is already under strain.
 
         // First, we put the request & TLS error events together in order:
-        this.eventQueue.push(..._.sortBy([
-            ...requests.map(r => ({ type: 'request' as const, event: r })),
-            ...tlsErrors.map(r => ({ type: 'tls-client-error' as const, event: r }))
-        ], e => e.event.timingEvents.startTime));
+        this.eventQueue.push(
+            ..._.sortBy(
+                [
+                    ...requests.map((r) => ({ type: "request" as const, event: r })),
+                    ...tlsErrors.map((r) => ({
+                        type: "tls-client-error" as const,
+                        event: r,
+                    })),
+                ],
+                (e) => e.event.timingEvents.startTime
+            )
+        );
 
         // Then we add responses & aborts. They just update requests, so order doesn't matter:
         this.eventQueue.push(
-            ...responses.map(r => ({ type: 'response' as const, event: r })),
-            ...aborts.map(r => ({ type: 'abort' as const, event: r }))
+            ...responses.map((r) => ({ type: "response" as const, event: r })),
+            ...aborts.map((r) => ({ type: "abort" as const, event: r }))
         );
 
         this.queueEventFlush();
@@ -691,10 +757,63 @@ export class EventsStore {
         if (pinnedIds.length) {
             // This rAF will be scheduled after the queued flush, so the event should
             // always be fully imported by this stage:
-            requestAnimationFrame(action(() => pinnedIds.forEach((id) => {
-                this.events.find(e => e.id === id)!.pinned = true;
-            })));
+            requestAnimationFrame(
+                action(() =>
+                    pinnedIds.forEach((id) => {
+                        this.events.find((e) => e.id === id)!.pinned = true;
+                    })
+                )
+            );
         }
     }
 
+    private async tempSecurityCheck(exchange: HttpExchange) {
+
+        const checks: ((e: HtkResponse) => Promise<Report | undefined>)[]= [
+            async resp => await resp.body.decodedPromise
+                && resp.headers['content-type']
+                && (
+                    (
+                        [
+                            'text/javascript',
+                            'application/javascript'
+                        ].includes(resp.headers['content-type']!.split(';')[0])
+                        && resp.body.decoded?.toString().includes('innerHTML')
+                    ) || (
+                        resp.headers['content-type']!.split(';')[0]=== 'text/html'
+                        && resp.body.decoded?.toString()
+                            .split('<script>')
+                            .slice(1)
+                            .map(script => script.split('<\\script>')[0])
+                            .filter(str => str.length)
+                            .some(script => script.includes('innerHTML'))
+                    )
+                ) && {
+                severity: "medium",
+                statusMessage: "Response contains a script containing 'innerHTML'"
+            } || undefined
+        ];
+
+        (await Promise.all(checks.map(check => check(exchange.response as HtkResponse))))
+            .filter(v => !!v)
+            .forEach((report) => this.reportSecurityCheck(exchange.id, report!));
+    }
+
+    private reportSecurityCheck(messageID: string, report: Report) {
+        return fetch(`http://localhost:45456/session/${this.proxyStore.sessionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: `mutation {
+                    reportSecurityCheck(input: {
+                        id: "${messageID}",
+                        severity: "${report.severity}",
+                        statusMessage: "${report.statusMessage}"
+                    })
+                }`
+            }),
+        });
+    }
 }

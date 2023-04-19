@@ -110,7 +110,7 @@
     "mobx-utils": "^5.1.0",
     "mockrtc": "^0.3.0",
     "mocksecurity-check": "file:../mocksecurity-check",
-    "mockttp": "^3.5.0",
+    "mockttp": "file:../mockttp",
     "monaco-editor": "^0.27.0",
     "node-forge": "^1.3.0",
     "openapi-directory": "^1.3.0",
