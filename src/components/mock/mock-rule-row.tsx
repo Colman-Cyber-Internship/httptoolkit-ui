@@ -689,23 +689,11 @@ class HandlerStepSection extends React.Component<{
                 onChange={this.updateHandler}
                 availableHandlers={availableHandlers}
             />
-
-            { isHandlerDemo
-                // If you select a paid handler with an unpaid account,
-                // show a handler demo with a 'Get Pro' overlay:
-                ? <GetProOverlay getPro={getPro} source={`rule-${handler.type}`}>
-                    <HandlerConfiguration
-                        ruleType={ruleType}
-                        handler={shownHandler}
-                        onChange={_.noop}
-                    />
-                </GetProOverlay>
-                : <HandlerConfiguration
+<HandlerConfiguration
                     ruleType={ruleType}
                     handler={shownHandler}
                     onChange={this.updateHandler}
                 />
-            }
         </>;
     }
 

@@ -102,6 +102,7 @@ class App extends React.Component<{ accountStore: AccountStore }> {
                 type: 'router',
                 url: '/view'
             },
+        
             //      (this.canVisitSettings
             //     ? {
             //         name: 'Settings',
@@ -129,8 +130,15 @@ class App extends React.Component<{ accountStore: AccountStore }> {
             //     highlight: true,
             //     type: 'web',
             //     url: 'https://github.com/httptoolkit/httptoolkit/issues/new/choose'
-            // },
-
+               // },
+...[{
+                    name: 'Mock',
+                    title: `Add rules to mock & rewrite HTTP traffic (${Ctrl}+3)`,
+                    icon: ['fas', 'theater-masks'],
+                    position: 'top',
+                    type: 'router',
+                    url: '/mock'
+                }],
             ...(
                 (
                     // Hide Mock option if the server is too old for proper support.
