@@ -13,7 +13,7 @@ import {
 import { observer, disposeOnUnmount, inject } from 'mobx-react';
 import * as portals from 'react-reverse-portal';
 
-import { WithInjected, CollectedEvent, SecurityCheck } from '../../types';
+import { WithInjected, CollectedEvent } from '../../types';
 import { styled } from '../../styles';
 import { useHotkeys, isEditable } from '../../util/ui';
 import { debounceComputed } from '../../util/observable';
