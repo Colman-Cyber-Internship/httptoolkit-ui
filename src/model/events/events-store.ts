@@ -791,9 +791,18 @@ export class EventsStore {
                 ) && {
                 severity: "medium",
                 statusMessage: "Response contains a script containing 'innerHTML'"
-            } || undefined
+            } || undefined, 
+            async resp => {
+                await resp.body.decodedPromise;
+                if(resp.headers['x-xss-protection']=="0")
+                {
+                    return {
+                        severity: "low",
+                        statusMessage: "Reflected cross-site scripting detected"
+                    }
+                }
+            }
         ];
-
         (await Promise.all(checks.map(check => check(exchange.response as HtkResponse))))
             .filter(v => !!v)
             .forEach((report) => this.reportSecurityCheck(exchange.id, report!));

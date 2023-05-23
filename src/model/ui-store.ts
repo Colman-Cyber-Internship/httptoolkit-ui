@@ -14,6 +14,7 @@ const VIEW_CARD_KEYS = [
     'requestBody',
     'response',
     'responseBody',
+    'httpMalicious',
 
     'webSocketMessages',
     'webSocketClose',
@@ -30,7 +31,8 @@ type ViewCardKey = typeof VIEW_CARD_KEYS[number];
 const EXPANDABLE_CARD_KEYS = [
     'requestBody',
     'responseBody',
-    'webSocketMessages'
+    'webSocketMessages',
+    'httpMalicious'
 ] as const;
 type ExpandableCardKey = typeof EXPANDABLE_CARD_KEYS[number];
 
@@ -120,6 +122,8 @@ export class UiStore {
         'requestBody': { collapsed: false },
         'response': { collapsed: false },
         'responseBody': { collapsed: false },
+        'httpMalicious': { collapsed: false },
+
 
         'webSocketMessages': { collapsed: false },
         'webSocketClose': { collapsed: false },

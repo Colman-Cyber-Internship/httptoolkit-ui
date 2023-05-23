@@ -85,7 +85,6 @@ export const HttpResponseCard = observer((props: HttpResponseCardProps) => {
                     : null
                 }
             </CollapsibleSection>
-            {maliciousMessage.length ? <div><ContentLabel>malicious:</ContentLabel>{' '}{maliciousMessage[0].statusMessage}</div> : null}
 
             <ContentLabelBlock>Headers</ContentLabelBlock>
             <HeaderDetails headers={response.headers} requestUrl={requestUrl} />

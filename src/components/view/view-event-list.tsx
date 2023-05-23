@@ -222,7 +222,13 @@ const EventListRow = styled.div`
     user-select: none;
     cursor: pointer;
 
-    &.malicious {
+    &.malicious-low {
+        background-color: lightgrey;
+    }
+    &.malicious-medium {
+        background-color: orange;
+    }
+    &.malicious-high {
         background-color: red;
     }
 
@@ -246,7 +252,13 @@ const TrafficEventListRow = styled(EventListRow)`
     background-clip: padding-box;
     box-sizing: border-box;
 
-    &.malicious {
+    &.malicious-low {
+        background-color: lightgrey;
+    }
+    &.malicious-medium {
+        background-color: orange;
+    }
+    &.malicious-high {
         background-color: red;
     }
 
@@ -273,9 +285,16 @@ const TlsListRow = styled(EventListRow)`
         opacity: 1;
     }
 
-   &.malicious {
+   &.malicious-low {
+        background-color: lightgrey;
+    }
+    &.malicious-medium {
+        background-color: orange;
+    }
+    &.malicious-high {
         background-color: red;
     }
+
 
     &.selected {
         opacity: 1;
@@ -373,7 +392,9 @@ const EventRow = observer((props: EventRowProps) => {
         throw new UnreachableCheck(event);
     }
 });
-
+const getSeverity = (maliciousArray:Array<any>) => {
+    return maliciousArray[0]?.severity;
+}
 const ExchangeRow = observer(({
     index,
     isSelected,
@@ -394,9 +415,9 @@ const ExchangeRow = observer(({
     } = exchange;
     const className = (): string => {
         let classString= '';
-        
         if (securityChecks.length){
-            classString += " malicious";
+            const color = getSeverity(securityChecks)
+            classString += " malicious-"+ color;
         }
 
         if (isSelected) {
