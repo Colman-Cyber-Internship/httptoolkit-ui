@@ -202,10 +202,7 @@ export const HandlerSelector = inject('rulesStore', 'accountStore')(observer((p:
         }}
     >
         <HandlerOptions handlers={allowedHandlers} />
-        { needProHandlers.length &&
-            <optgroup label='With Pipe Pro:'>
-                <HandlerOptions handlers={needProHandlers} />
-            </optgroup>
-        }
+        {/* <HandlerOptions handlers={needProHandlers} /> */}
+
     </HandlerSelect>
 }));
