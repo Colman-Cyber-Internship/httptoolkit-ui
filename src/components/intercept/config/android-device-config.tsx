@@ -70,7 +70,7 @@ function urlSafeBase64(content: string) {
 
 function getConfigRequestIds(eventsStore: EventsStore) {
     return eventsStore.exchanges.filter((exchange) =>
-        exchange.request.url === 'http://android.httptoolkit.tech/config'
+        exchange.request.url === 'http://android.pipe.tech/config'
     ).map(e => e.id);
 }
 
@@ -87,7 +87,7 @@ export function setUpAndroidCertificateRule(
         matchers: [
             new MethodMatchers.GET(),
             new matchers.SimplePathMatcher(
-                "http://android.httptoolkit.tech/config"
+                "http://android.pipe.tech/config"
             )
         ],
         completionChecker: new completionCheckers.Always(),
@@ -194,7 +194,7 @@ class AndroidConfig extends React.Component<{
             <QRCode
                 size={160}
                 value={
-                    `https://android.httptoolkit.tech/connect/?data=${serializedSetupParams}`
+                    `https://android.pipe.tech/connect/?data=${serializedSetupParams}`
                 }
             />
             <Spacer />

@@ -24,7 +24,7 @@ const enabled = !!POSTHOG_KEY && navigator.doNotTrack !== "1";
 export function initMetrics() {
   if (enabled) {
     posthog.init(POSTHOG_KEY, {
-      api_host: "https://events.httptoolkit.tech",
+      api_host: "https://events.pipe.tech",
       autocapture: false, // No automatic event capture please
 
       capture_pageview: false, // We manually capture pageview (to sanitize & dedupe URLs)

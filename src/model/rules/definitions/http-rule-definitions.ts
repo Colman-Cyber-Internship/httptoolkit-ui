@@ -75,11 +75,11 @@ export class AmIUsingMatcher extends httpMatchers.RegexPathMatcher {
 
   constructor() {
     // Optional slash is for backward compat: for server 0.1.18+ it's always present
-    super(/^https?:\/\/pipe\.httptoolkit\.tech\/?$/);
+    super(/^https?:\/\/amiusing\.pipe\.tech\/?$/);
   }
 
   explain() {
-    return "for pipe.httptoolkit.tech";
+    return "for amiusing.pipe.tech";
   }
 }
 
