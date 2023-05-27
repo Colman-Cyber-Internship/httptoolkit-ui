@@ -120,7 +120,7 @@ export class AndroidAdbInterceptor implements Interceptor {
         // Use ADB to launch the app with the proxy details
         await startActivity(deviceClient, {
             action: 'tech.httptoolkit.android.ACTIVATE',
-            data: `https://android.httptoolkit.tech/connect/?data=${intentData}`,
+            data: `https://android.pipe.tech/connect/?data=${intentData}`,
             retries: 10
         });
 

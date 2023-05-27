@@ -48,7 +48,7 @@ const getChromiumLaunchOptions = async (
             // We use httptoolkit-internal.localhost (always resolves to localhost,
             // enforced by Chrome) to skip the proxy for internal requests from the
             // our webextension.
-            'internal.httptoolkit.localhost'
+            'internal.pipe.localhost'
         ],
         options: [
             // Trust our CA certificate's fingerprint:
@@ -99,7 +99,7 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
         const alreadyActive = this.isActive(proxyPort);
 
         const hideWarningServer = new HideWarningServer(this.config);
-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
+        await hideWarningServer.start('https://amiusing.pipe.tech');
 
         const browserDetails = await getBrowserDetails(this.config, this.variantName);
 
@@ -245,7 +245,7 @@ abstract class ExistingChromiumBasedInterceptor implements Interceptor {
         if (!this.isActivable()) return;
 
         const hideWarningServer = new HideWarningServer(this.config);
-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
+        await hideWarningServer.start('https://amiusing.pipe.tech');
 
         const existingPid = await this.findExistingPid();
         if (existingPid) {

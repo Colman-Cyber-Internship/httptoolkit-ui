@@ -23,7 +23,7 @@ echo Testing server...
 REM --silent (no progress), --fail on errors, --include headers in logs
 set CURL_OPTIONS="-sfi"
 REM CSRF protection fully blocks unrecognized/missing origin requests:
-set WITH_ORIGIN="-HOrigin: https://app.httptoolkit.tech"
+set WITH_ORIGIN="-HOrigin: https://app.pipe.tech"
 set AS_JSON="-HContent-Type: application/json"
 
 echo:
