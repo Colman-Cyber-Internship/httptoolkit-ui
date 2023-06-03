@@ -28,7 +28,7 @@ describe('Chrome interceptor', function () {
 
         const exampleRequestReceived = new Promise<CompletedRequest>((resolve) =>
             server.on('request', (req) => {
-                if (req.url.startsWith('https://amiusing.httptoolkit.tech')) {
+                if (req.url.startsWith('https://amiusing.pipe.tech')) {
                     resolve(req);
                 }
             })

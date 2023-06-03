@@ -73,7 +73,7 @@ export async function updateWebExtensionConfig(
     if (webRTCEnabled) {
         await ensureWebExtensionInstalled();
 
-        const adminBaseUrl = `http://internal.httptoolkit.localhost:45456/session/${sessionId}`;
+        const adminBaseUrl = `http://internal.pipe.localhost:45456/session/${sessionId}`;
         await writeConfig(httpProxyPort, {
             mockRtc: {
                 peerId: 'matching-peer',

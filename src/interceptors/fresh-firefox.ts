@@ -270,7 +270,7 @@ export class FreshFirefox implements Interceptor {
             }, {});
 
         const certCheckServer = new CertCheckServer(this.config);
-        await certCheckServer.start("https://amiusing.httptoolkit.tech");
+        await certCheckServer.start("https://amiusing.pipe.tech");
 
         const browser = await this.startFirefox(certCheckServer, proxyPort, existingPrefs);
 
