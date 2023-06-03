@@ -234,7 +234,7 @@ export const buildDefaultGroupRules = (
   rulesStore: RulesStore,
   proxyStore: ProxyStore
 ): HtkMockItem[] => [
-  // Respond to amiusing.httptoolkit.tech with an emphatic YES
+  // Respond to amiusing.pipe.tech with an emphatic YES
   {
     id: "default-amiusing",
     type: "http",
@@ -260,9 +260,7 @@ export const buildDefaultGroupRules = (
           activated: true,
           matchers: [
             new HttpRule.MethodMatchers.GET(),
-            new matchers.SimplePathMatcher(
-              "amiusing.httptoolkit.tech/certificate"
-            ),
+            new matchers.SimplePathMatcher("amiusing.pipe.tech/certificate"),
           ],
           completionChecker: new completionCheckers.Always(),
           handler: new HttpRule.FromFileResponseHandler(
