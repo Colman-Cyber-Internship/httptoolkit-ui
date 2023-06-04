@@ -104,14 +104,14 @@ class App extends React.Component<{ accountStore: AccountStore }> {
             },
         
             //      (this.canVisitSettings
-            //     ? {
-            //         name: 'Settings',
-            //         title: `Reconfigure HTTP Toolkit and manage your account (${Ctrl}+9)`,
-            //         icon: ['fas', 'cog'],
-            //         position: 'bottom',
-            //         type: 'router',
-            //         url: '/settings'
-            //     }
+                {
+                    name: 'Settings',
+                    title: `Reconfigure HTTP Toolkit and manage your account (${Ctrl}+9)`,
+                    icon: ['fas', 'cog'],
+                    position: 'bottom',
+                    type: 'router',
+                    url: '/settings'
+                }
             //     : {
             //         name: 'Get Pro',
             //         title: "Sign up for HTTP Toolkit Pro",

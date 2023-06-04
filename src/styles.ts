@@ -164,13 +164,13 @@ export const highContrastTheme = {
 };
 
 export const Themes = {
-  light: lightTheme,
   dark: darkTheme,
+  light: lightTheme,
   "high-contrast": highContrastTheme,
 };
 
 export type ThemeName = keyof typeof Themes;
-export type Theme = typeof Themes[ThemeName];
+export type Theme = (typeof Themes)[ThemeName];
 
 const monacoColorOverrides = {
   "editorWarning.foreground": "#ff0000",
