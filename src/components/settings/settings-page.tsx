@@ -28,6 +28,7 @@ import { ProxySettingsCard } from './proxy-settings-card';
 import { ConnectionSettingsCard } from './connection-settings-card';
 import { SettingsButton, SettingsButtonLink } from './settings-components';
 import { ApiSettingsCard } from './api-settings-card';
+import { SubscriptionPlan } from '../../model/account/subscriptions';
 
 interface SettingsPageProps {
     accountStore: AccountStore;
@@ -115,19 +116,13 @@ class SettingsPage extends React.Component<SettingsPageProps> {
             isPastDueUser,
             userEmail,
             userSubscription,
-            subscriptionPlans,
             getPro,
             logOut
         } = this.props.accountStore;
-
+        const proAnnual = { paddleId: 550382, name: "Pro (annual)" } as SubscriptionPlan
         const cardProps = uiStore.settingsCardProps;
 
-        if (!isPaidUser && !isPastDueUser) {
-            // Can only happen if you log out whilst on this page.
-            return <SettingsPagePlaceholder>
-                <Button onClick={() => getPro('settings-page')}>Get Pro</Button>
-            </SettingsPagePlaceholder>;
-        }
+        console.log("userSubscription",userSubscription)
 
         // ! because we know this is set, as we have a paid user
         const sub = userSubscription!;
@@ -136,107 +131,7 @@ class SettingsPage extends React.Component<SettingsPageProps> {
             <SettingPageContainer>
                 <SettingsHeading>Settings</SettingsHeading>
 
-                <CollapsibleCard {...cardProps.account}>
-                    <header>
-                        <CollapsibleCardHeading onCollapseToggled={
-                            cardProps.account.onCollapseToggled
-                        }>
-                            Account
-                        </CollapsibleCardHeading>
-                    </header>
-                    <AccountDetailsContainer>
-                        <ContentLabel>
-                            Account email
-                        </ContentLabel>
-                        <ContentValue>
-                            { userEmail }
-                        </ContentValue>
-
-                        <ContentLabel>
-                            Subscription status
-                        </ContentLabel>
-                        <ContentValue>
-                            {
-                                ({
-                                    'active': 'Active',
-                                    'trialing': 'Active (trial)',
-                                    'past_due': <strong
-                                        title={dedent`
-                                            Your subscription payment failed, and will be reattempted.
-                                            If retried payments fail your subscription will be cancelled.
-                                        `}
-                                    >Past due <WarningIcon /></strong>,
-                                    'deleted': 'Cancelled'
-                                }[sub.status]) || 'Unknown'
-                            }
-                        </ContentValue>
-
-                        <ContentLabel>
-                            Subscription plan
-                        </ContentLabel>
-                        <ContentValue>
-                            { get(subscriptionPlans, sub.plan, 'name') || 'Unknown' }
-                        </ContentValue>
-
-                        <ContentLabel>
-                            {
-                                ({
-                                    'active': 'Next renews',
-                                    'trialing': 'Renews',
-                                    'past_due': 'Next payment attempt',
-                                    'deleted': 'Ends',
-                                }[sub.status]) || 'Current period ends'
-                            }
-                        </ContentLabel>
-                        <ContentValue>
-                            {
-                                distanceInWordsStrict(new Date(), sub.expiry, {
-                                    addSuffix: true
-                                })
-                            } ({
-                                format(sub.expiry.toString(), 'Do [of] MMMM YYYY')
-                            })
-                        </ContentValue>
-                    </AccountDetailsContainer>
-
-                    <AccountControls>
-                        { sub.lastReceiptUrl &&
-                            <SettingsButtonLink
-                                href={ sub.lastReceiptUrl }
-                                target='_blank'
-                                rel='noreferrer noopener'
-                            >
-                                View latest invoice
-                            </SettingsButtonLink>
-                        }
-                        { sub.status !== 'deleted' &&
-                          sub.updateBillingDetailsUrl &&
-                            <SettingsButtonLink
-                                href={ sub.updateBillingDetailsUrl }
-                                target='_blank'
-                                rel='noreferrer noopener'
-                                highlight={sub.status === 'past_due'}
-                            >
-                                Update billing details
-                            </SettingsButtonLink>
-                        }
-                        { sub.status !== 'deleted' &&
-                          sub.cancelSubscriptionUrl &&
-                            <SettingsButtonLink
-                                href={ sub.cancelSubscriptionUrl }
-                                target='_blank'
-                                rel='noreferrer noopener'
-                            >
-                                Cancel subscription
-                            </SettingsButtonLink>
-                        }
-                        <SettingsButton onClick={logOut}>Log out</SettingsButton>
-                    </AccountControls>
-
-                    <AccountContactFooter>
-                        Questions? Email <strong>billing@httptoolkit.com</strong>
-                    </AccountContactFooter>
-                </CollapsibleCard>
+            
 
                 {/*
                     The above shows for both active paid users, and recently paid users whose most recent
@@ -246,7 +141,7 @@ class SettingsPage extends React.Component<SettingsPageProps> {
                     The rest is active paid users only:
                  */}
 
-                { isPaidUser && <>
+                { true && <>
                     {
                         _.isString(serverVersion.value) &&
                         versionSatisfies(serverVersion.value, PORT_RANGE_SERVER_RANGE) && <>
@@ -254,8 +149,6 @@ class SettingsPage extends React.Component<SettingsPageProps> {
                             <ConnectionSettingsCard {...cardProps.connection} />
                         </>
                     }
-
-                    <ApiSettingsCard {...cardProps.api} />
 
                     <CollapsibleCard {...cardProps.themes}>
                         <header>
