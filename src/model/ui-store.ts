@@ -73,7 +73,7 @@ export class UiStore {
     // logout & subscription expiration (even if that happened while the app was
     // closed), but don't get reset when the app starts with stale account data.
     observe(this.accountStore, "accountDataLastUpdated", () => {
-      if (!this.accountStore.isPaidUser) this.setTheme("dark");
+      if (!this.accountStore.isPaidUser) this.setTheme("light");
     });
 
     await hydrate({
@@ -97,7 +97,7 @@ export class UiStore {
 
   @persist
   @observable
-  private _themeName: ThemeName | "custom" = "dark";
+  private _themeName: ThemeName | "custom" = "light";
 
   get themeName() {
     return this._themeName;

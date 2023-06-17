@@ -32,6 +32,9 @@ import { EmptyState } from '../common/empty-state';
 import { StatusCode } from '../common/status-code';
 
 import { HEADER_FOOTER_HEIGHT } from './view-event-list-footer';
+import {useState} from "react";
+import {Button} from "../common/inputs";
+import {IconMenuButton} from "../mock/mock-item-menu";
 
 const SCROLL_BOTTOM_MARGIN = 5; // If you're in the last 5 pixels of the scroll area, we say you're at the bottom
 
@@ -149,6 +152,16 @@ const Status = styled(Column)`
     flex-shrink: 0;
     flex-grow: 0;
 `;
+
+const EnableMultiSeverity = styled(Column)`
+  flex-basis: 80px;
+  flex-shrink: 0;
+  flex-grow: 0;
+`;
+
+const EnableSeverityOnlyCritical = styled(Column)`
+    background: red;
+`
 
 const Source = styled(Column)`
     flex-basis: 49px;
@@ -395,6 +408,8 @@ const EventRow = observer((props: EventRowProps) => {
 const getSeverity = (maliciousArray:Array<any>) => {
     return maliciousArray[0]?.severity;
 }
+let showOnlyCritical = false;
+
 const ExchangeRow = observer(({
     index,
     isSelected,
@@ -413,11 +428,14 @@ const ExchangeRow = observer(({
         category,
         securityChecks
     } = exchange;
-    const className = (): string => {
+
+    const className = (onlyCritical: boolean): string => {
         let classString= '';
         if (securityChecks.length){
+            console.log("securityChecks",securityChecks[0]?.severity)
             const color = getSeverity(securityChecks)
-            classString += " malicious-"+ color;
+            console.log("onlyCritical",onlyCritical)
+            classString += onlyCritical ? color === 'medium' ? "malicious-high" : null : "malicious-"+ color;
         }
 
         if (isSelected) {
@@ -426,72 +444,83 @@ const ExchangeRow = observer(({
 
         return classString
     }
-    return <TrafficEventListRow
-        role="row"
-        aria-label='row'
-        aria-rowindex={index + 1}
-        data-event-id={exchange.id}
-        tabIndex={isSelected ? 0 : -1}
 
-        className={className()}
-        style={style}
-    >
-        <RowPin pinned={pinned}/>
-        <RowMarker category={category} title={describeEventCategory(category)} />
-        <Method pinned={pinned}>{ request.method }</Method>
-        <Status>
-            {
-                response === 'aborted'
-                    ? <StatusCode status={'aborted'} />
-                : exchange.isBreakpointed
-                    ? <WarningIcon title='Breakpointed, waiting to be resumed' />
-                : exchange.isWebSocket() && response?.statusCode === 101
-                    ? <StatusCode // Special UI for accepted WebSockets
-                        status={exchange.closeState
-                            ? 'WS:closed'
-                            : 'WS:open'
-                        }
-                        message={`${exchange.closeState
-                            ? 'A closed'
-                            : 'An open'
-                        } WebSocket connection`}
+
+    return (
+        <>
+            <TrafficEventListRow
+                role="row"
+                aria-label='row'
+                aria-rowindex={index + 1}
+                data-event-id={exchange.id}
+                tabIndex={isSelected ? 0 : -1}
+                className={className(showOnlyCritical)}
+                style={style}
+            >
+                <RowPin pinned={pinned}/>
+                <RowMarker category={category} title={describeEventCategory(category)} />
+                <Method pinned={pinned}>{ request.method }</Method>
+                <IconMenuButton
+                    title={showOnlyCritical ? 'Deactivate these rules' : 'Activate these rules'}
+                    icon={['fas', showOnlyCritical ? 'toggle-on' : 'toggle-off']}
+                    onClick={() => {showOnlyCritical = !showOnlyCritical }}
+                />
+                <Status>
+                    {
+                        response === 'aborted'
+                            ? <StatusCode status={'aborted'} />
+                            : exchange.isBreakpointed
+                                ? <WarningIcon title='Breakpointed, waiting to be resumed' />
+                                : exchange.isWebSocket() && response?.statusCode === 101
+                                    ? <StatusCode // Special UI for accepted WebSockets
+                                        status={exchange.closeState
+                                            ? 'WS:closed'
+                                            : 'WS:open'
+                                        }
+                                        message={`${exchange.closeState
+                                            ? 'A closed'
+                                            : 'An open'
+                                        } WebSocket connection`}
+                                    />
+                                    : <StatusCode
+                                        status={response?.statusCode}
+                                        message={response?.statusMessage}
+                                    />
+                    }
+                </Status>
+                <Source>
+                    <Icon
+                        title={request.source.summary}
+                        {...request.source.icon}
+                        fixedWidth={true}
                     />
-                : <StatusCode
-                    status={response?.statusCode}
-                    message={response?.statusMessage}
-                />
-            }
-        </Status>
-        <Source>
-            <Icon
-                title={request.source.summary}
-                {...request.source.icon}
-                fixedWidth={true}
-            />
-            {
-                exchange.matchedRule &&
-                exchange.matchedRule.handlerStepTypes.some(t =>
-                    t !== 'passthrough' && t !== 'ws-passthrough' && t !== 'rtc-dynamic-proxy'
-                ) &&
-                <Icon
-                    title={`Handled by ${
-                        exchange.matchedRule.handlerStepTypes.length === 1
-                        ? nameHandlerClass(exchange.matchedRule.handlerStepTypes[0])
-                        : 'multi-step'
-                    } rule`}
-                    icon={['fas', 'theater-masks']}
-                    color={getSummaryColour('mutative')}
-                    fixedWidth={true}
-                />
-            }
-        </Source>
-        <Host title={ request.parsedUrl.host }>
-            { request.parsedUrl.host }
-        </Host>
-        <PathAndQuery title={ request.parsedUrl.pathname + request.parsedUrl.search }>
-            { request.parsedUrl.pathname + request.parsedUrl.search }
-        </PathAndQuery>
-    </TrafficEventListRow>;
+                    {
+                        exchange.matchedRule &&
+                        exchange.matchedRule.handlerStepTypes.some(t =>
+                            t !== 'passthrough' && t !== 'ws-passthrough' && t !== 'rtc-dynamic-proxy'
+                        ) &&
+                        <Icon
+                            title={`Handled by ${
+                                exchange.matchedRule.handlerStepTypes.length === 1
+                                    ? nameHandlerClass(exchange.matchedRule.handlerStepTypes[0])
+                                    : 'multi-step'
+                            } rule`}
+                            icon={['fas', 'theater-masks']}
+                            color={getSummaryColour('mutative')}
+                            fixedWidth={true}
+                        />
+                    }
+                </Source>
+                <Host title={ request.parsedUrl.host }>
+                    { request.parsedUrl.host }
+                </Host>
+                <PathAndQuery title={ request.parsedUrl.pathname + request.parsedUrl.search }>
+                    { request.parsedUrl.pathname + request.parsedUrl.search }
+                </PathAndQuery>
+            </TrafficEventListRow>;
+        </>
+        )
+
 });
 
 const ConnectedSpinnerIcon = styled(Icon).attrs(() => ({
@@ -742,6 +771,7 @@ export class ViewEventList extends React.Component<ViewEventListProps> {
             <TableHeader>
                 <MarkerHeader />
                 <Method>Method</Method>
+                <EnableMultiSeverity>Enable Severity</EnableMultiSeverity>
                 <Status>Status</Status>
                 <Source>Source</Source>
                 <Host>Host</Host>
