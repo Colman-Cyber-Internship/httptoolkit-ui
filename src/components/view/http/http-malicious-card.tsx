@@ -36,6 +36,9 @@ interface MaliciousProps extends CollapsibleCardProps {
 }
 export const HttpMaliciousCard = observer((props: MaliciousProps) => {
   const { collapsed, expanded, maliciousObject } = props;
+  const statusMessageArr = maliciousObject[0].statusMessage.split("https");
+
+  const refSolution = "https" + statusMessageArr[1]
   let content;
   if (maliciousObject.length) {
     content = (
@@ -50,7 +53,8 @@ export const HttpMaliciousCard = observer((props: MaliciousProps) => {
         </p>
         <p>
           <ContentLabel>Description:</ContentLabel>
-          {maliciousObject[0]?.statusMessage}
+          {statusMessageArr[0]}
+          <a href={refSolution} target="_blank">{refSolution}</a>
         </p>
       </div>
     );

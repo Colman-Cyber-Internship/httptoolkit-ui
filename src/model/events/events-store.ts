@@ -790,7 +790,7 @@ export class EventsStore {
                     )
                 ) && {
                 severity: "medium",
-                statusMessage: "Response contains a script containing 'innerHTML'"
+                statusMessage: "Response contains a script containing 'innerHTML'. Solution: https://gomakethings.com/preventing-cross-site-scripting-attacks-when-using-innerhtml-in-vanilla-javascript/"
             } || undefined, 
             async resp => {
                 await resp.body.decodedPromise;
@@ -798,7 +798,7 @@ export class EventsStore {
                 {
                     return {
                         severity: "low",
-                        statusMessage: "Reflected cross-site scripting detected"
+                        statusMessage: "Reflected cross-site scripting detected. Solution: https://security.snyk.io/vuln/npm:react-dom:20180802"
                     }
                 }
             }
